@@ -33,7 +33,7 @@ public class User {
     @DBRef
     private Set<Role> roles = new HashSet<>();
 
-    private ArrayList<Pet> pets;
+    public ArrayList<Pet> pets;
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
