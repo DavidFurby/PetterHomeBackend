@@ -43,7 +43,7 @@ public class UserController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: An animal must be selected"));
         }
         Pet pet = new Pet(petRequest.getPetName(), petRequest.getPetAge(), petRequest.getGender(),
-                petRequest.getAnimal());
+                petRequest.getAnimal(), petRequest.getHeight(), petRequest.getWeight(), petRequest.getNeed());
         user.ifPresent(u -> u.addPet(pet));
         user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Pet added successfully!"));
@@ -62,7 +62,7 @@ public class UserController {
                 return pet;
             }
         }
-    return null; 
+        return null;
     }
 
     @PutMapping("/updateUserPet")

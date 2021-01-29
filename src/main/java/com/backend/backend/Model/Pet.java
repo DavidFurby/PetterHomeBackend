@@ -44,12 +44,21 @@ public class Pet {
     @NotBlank
     private  Animal animal;
 
-    public Pet( String petName, Integer petAge, Gender gender, Animal animal) {
+    private Integer weight;
+
+    private Integer height; 
+
+    private Need need; 
+
+    public Pet( String petName, Integer petAge, Gender gender, Animal animal, Integer weight, Integer height, Need need) {
         String newId;
         this.petName = petName;
         this.petAge = petAge;
         this.gender = gender;
         this.animal = animal;
+        this.weight = weight;
+        this.height = height; 
+        this.need = need; 
     }
     public String getId() {
         return id.toHexString();
@@ -68,5 +77,14 @@ public class Pet {
     }
 
     public void setPetName() {
+    }
+    public Need getNeed() {
+        return need; 
+    }
+    public Integer getWeight() {
+        return weight; 
+    }
+    public Integer getHeight() {
+        return height; 
     }
 }
