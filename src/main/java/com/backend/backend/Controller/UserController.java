@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -59,9 +60,12 @@ public class UserController {
         String userId = id.get("userId");
         String petId = id.get("petId");
         Optional<User> user = userRepository.findById(userId);
-        List<Pet> pets = user.get().pets;
+        
+        ArrayList<Pet> pets = user.get().pets;
 
-      
+        List<Pet> filterPets = pets.stream().filter(p -> p.getId() == petId).collect(Collectors.toList()); 
+        Pet setPet = filterPets.get(0);
+
         if (needRequest.getType() == null) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Error: A name for the pets need must be selected"));
@@ -71,7 +75,7 @@ public class UserController {
         }
         Need need = new Need(needRequest.getType(), needRequest.getNotified(), needRequest.getSchedule());
 
-        return ResponseEntity.ok(new MessageResponse("Pets need added successfully!")); 
+        return ResponseEntity.ok(new MessageResponse("Pets need added successfully!"));
     }
 
     @GetMapping("/getPetById")
