@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -52,7 +51,6 @@ public class UserController {
         }
         Pet pet = new Pet(petRequest.getPetName(), petRequest.getPetAge(), petRequest.getGender(),
                 petRequest.getAnimal(), petRequest.getHeight(), petRequest.getWeight());
-        List<Need> needs = new ArrayList<>();
         user.ifPresent(u -> u.addPet(pet));
         user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Pet added successfully!"));
@@ -62,15 +60,6 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<MessageResponse> addNeedToPet(@Valid @RequestBody NeedRequest needRequest,
             @RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
-        String petId = id.get("petId");
-        Optional<User> user = userRepository.findById(userId);
-
-        ArrayList<Pet> pets = user.get().pets;
-
-        List<Pet> filterPets = pets.stream().filter(p -> p.getId() == petId).collect(Collectors.toList());
-        Pet setPet = filterPets.get(0);
-
         if (needRequest.getType() == null) {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Error: A name for the pets need must be selected"));
@@ -78,8 +67,18 @@ public class UserController {
         if (needRequest.getSchedule() == null) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: No schedule has been made"));
         }
-        Need need = new Need(needRequest.getType(), needRequest.getNotified(), needRequest.getSchedule());
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        Optional<User> user = userRepository.findById(userId);
 
+        ArrayList<Pet> pets = user.get().pets;
+
+        List<Pet> filterPets = pets.stream().filter(p -> p.getId().equals(petId)).collect(Collectors.toList());
+        Optional<Pet> setPet = filterPets.stream().findFirst();
+
+        Need need = new Need(needRequest.getType(), needRequest.getNotified(), needRequest.getSchedule());
+        setPet.ifPresent(p -> p.addNeed(need));
+        user.ifPresent(u -> userRepository.save(u)); 
         return ResponseEntity.ok(new MessageResponse("Pets need added successfully!"));
     }
 

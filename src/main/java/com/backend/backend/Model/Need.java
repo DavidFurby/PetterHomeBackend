@@ -39,4 +39,10 @@ public class Need {
     public String getType() {
         return type; 
     }
+    public Boolean getNotified() {
+        return notified; 
+    }
+    public List<Schedule> getSchedule() {
+        return schedule; 
+    }
 }
