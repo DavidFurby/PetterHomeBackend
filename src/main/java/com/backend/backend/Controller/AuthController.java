@@ -14,7 +14,6 @@ import com.backend.backend.Repository.UserRepository;
 import com.backend.backend.Repository.RoleRepository;
 import com.backend.backend.Security.jwt.JwtUtils;
 import com.backend.backend.Security.services.UserDetailsImpl;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;

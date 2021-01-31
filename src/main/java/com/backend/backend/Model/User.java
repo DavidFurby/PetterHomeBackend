@@ -1,16 +1,16 @@
 package com.backend.backend.Model;
 
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Document(collection = "Users")
@@ -76,7 +76,7 @@ public class User {
         this.roles = roles;
     }
 
-    public ArrayList<Pet> getPets() {
+    public List<Pet> getPets() {
         return pets;
     }
     public void setPets(ArrayList<Pet> pets) {

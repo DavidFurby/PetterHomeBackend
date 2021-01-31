@@ -1,7 +1,9 @@
 package com.backend.backend.Controller;
 
+import com.backend.backend.Model.Need;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.User;
+import com.backend.backend.Payload.request.NeedRequest;
 import com.backend.backend.Payload.request.PetRequest;
 import com.backend.backend.Payload.response.MessageResponse;
 import com.backend.backend.Repository.UserRepository;
@@ -43,10 +45,33 @@ public class UserController {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: An animal must be selected"));
         }
         Pet pet = new Pet(petRequest.getPetName(), petRequest.getPetAge(), petRequest.getGender(),
-                petRequest.getAnimal(), petRequest.getHeight(), petRequest.getWeight(), petRequest.getNeed());
+                petRequest.getAnimal(), petRequest.getHeight(), petRequest.getWeight());
+        List<Need> needs = new ArrayList<>();
         user.ifPresent(u -> u.addPet(pet));
         user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Pet added successfully!"));
+    }
+
+    @PostMapping("/addNeedToPet")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<MessageResponse> addNeedToPet(@Valid @RequestBody NeedRequest needRequest,
+            @RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        Optional<User> user = userRepository.findById(userId);
+        List<Pet> pets = user.get().pets;
+
+      
+        if (needRequest.getType() == null) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: A name for the pets need must be selected"));
+        }
+        if (needRequest.getSchedule() == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: No schedule has been made"));
+        }
+        Need need = new Need(needRequest.getType(), needRequest.getNotified(), needRequest.getSchedule());
+
+        return ResponseEntity.ok(new MessageResponse("Pets need added successfully!")); 
     }
 
     @GetMapping("/getPetById")

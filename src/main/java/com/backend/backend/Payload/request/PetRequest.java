@@ -1,5 +1,7 @@
 package com.backend.backend.Payload.request;
 
+import java.util.List;
+
 import com.backend.backend.Model.Animal;
 import com.backend.backend.Model.Gender;
 import com.backend.backend.Model.Need;
@@ -9,7 +11,7 @@ public class PetRequest {
     private Integer petAge;
     private Animal animal;
     private Gender gender;
-    private Need need;
+    private List<Need> needs;
     private Integer height;
     private Integer weight;
 
@@ -33,12 +35,12 @@ public class PetRequest {
         return animal;
     }
 
-    public Need getNeed() {
-        return need;
+    public List<Need> getNeed() {
+        return needs;
     }
 
-    public void setNeed(Need need) {
-        this.need = need;
+    public void setNeed(List<Need> needs) {
+        this.needs = needs;
     }
 
     public void setAnimal(Animal animal) {
@@ -67,4 +69,8 @@ public class PetRequest {
     public void setHeight(Integer height) {
         this.height = height;
     }
+
+	public List<Need> getNeeds() {
+		return needs;
+	}
 }

@@ -24,11 +24,11 @@ public class UserDetailsImpl implements UserDetails {
 
     private final Collection<? extends GrantedAuthority> authorities;
 
-    private final ArrayList<Pet> pets;
+    private final List<Pet> pets;
 
 
     public UserDetailsImpl(String id, String username, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities, ArrayList<Pet> pets) {
+                           Collection<? extends GrantedAuthority> authorities, List<Pet> pets) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -42,7 +42,7 @@ public class UserDetailsImpl implements UserDetails {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
-        ArrayList<Pet> pets = user.getPets();
+        List<Pet> pets = user.getPets();
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
@@ -106,7 +106,7 @@ public class UserDetailsImpl implements UserDetails {
         return Objects.equals(id, user.id);
     }
 
-    public ArrayList<Pet> getPets() {
+    public List<Pet> getPets() {
         return pets;
     }
 

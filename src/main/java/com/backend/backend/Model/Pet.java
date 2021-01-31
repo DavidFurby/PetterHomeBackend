@@ -4,6 +4,9 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -16,6 +19,34 @@ public class Pet {
 
     @Id
     private ObjectId id = new ObjectId();
+
+    @NotBlank
+    @Size(max = 20)
+    private String petName;
+
+    @NotBlank
+    private Integer petAge;
+    @NotBlank
+    private Gender gender;
+    @NotBlank
+    private Animal animal;
+
+    private Integer weight;
+
+    private Integer height;
+
+    private List<Need> needs = new ArrayList<>();
+
+    public Pet(String petName, Integer petAge, Gender gender, Animal animal, Integer weight, Integer height) {
+        String newId;
+        this.petName = petName;
+        this.petAge = petAge;
+        this.gender = gender;
+        this.animal = animal;
+        this.weight = weight;
+        this.height = height;
+        this.needs = needs;
+    }
 
     public void setPetName(String petName) {
         this.petName = petName;
@@ -33,58 +64,44 @@ public class Pet {
         this.animal = animal;
     }
 
-    @NotBlank
-    @Size(max = 20)
-    private  String petName;
-
-    @NotBlank
-    private  Integer petAge;
-    @NotBlank
-    private  Gender gender;
-    @NotBlank
-    private  Animal animal;
-
-    private Integer weight;
-
-    private Integer height; 
-
-    private Need need; 
-
-    public Pet( String petName, Integer petAge, Gender gender, Animal animal, Integer weight, Integer height, Need need) {
-        String newId;
-        this.petName = petName;
-        this.petAge = petAge;
-        this.gender = gender;
-        this.animal = animal;
-        this.weight = weight;
-        this.height = height; 
-        this.need = need; 
-    }
     public String getId() {
         return id.toHexString();
     }
+
     public String getPetName() {
         return petName;
     }
+
     public Integer getPetAge() {
         return petAge;
     }
+
     public Animal getAnimal() {
         return animal;
     }
+
     public Gender getGender() {
         return gender;
     }
 
     public void setPetName() {
     }
-    public Need getNeed() {
-        return need; 
+
+    public List<Need> getNeeds() {
+        return needs;
+    }
+    public void setNeeds(List<Need> needs) {
+        this.needs = needs;
     }
     public Integer getWeight() {
-        return weight; 
+        return weight;
     }
+
     public Integer getHeight() {
-        return height; 
+        return height;
     }
+
+	public Object addNeed(Need need) {
+		return needs.add(need);
+	}
 }

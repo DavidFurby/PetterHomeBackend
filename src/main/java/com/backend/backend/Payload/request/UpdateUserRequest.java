@@ -2,11 +2,11 @@ package com.backend.backend.Payload.request;
 
 import com.backend.backend.Model.Pet;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class UpdateUserRequest {
     public String id;
-    private ArrayList<Pet> pets;
+    private List<Pet> pets;
 
 
     public String getId() {
@@ -16,11 +16,11 @@ public class UpdateUserRequest {
     public void setId(String id) {
         this.id = id;
     }
-    public void setPets(ArrayList<Pet> pets) {
+    public void setPets(List<Pet> pets) {
         this.pets = pets;
     }
 
-    public ArrayList<Pet> getPets() {
+    public List<Pet> getPets() {
         return pets;
     }
 }

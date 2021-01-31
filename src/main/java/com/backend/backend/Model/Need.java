@@ -1,5 +1,8 @@
 package com.backend.backend.Model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 
@@ -21,9 +24,9 @@ public class Need {
 
     private Boolean notified;
 
-    private Schedule schedule; 
+    private List <Schedule> schedule = new ArrayList<>(); 
 
-    public Need(String type, Boolean notified, Schedule schedule) {
+    public Need(String type, Boolean notified, List <Schedule> schedule) {
         ObjectId id;
         this.type = type;
         this.notified = notified;
@@ -32,5 +35,8 @@ public class Need {
 
     public String getId() {
         return id.toHexString();
+    }
+    public String getType() {
+        return type; 
     }
 }

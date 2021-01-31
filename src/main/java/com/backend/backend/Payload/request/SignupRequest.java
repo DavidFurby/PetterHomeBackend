@@ -2,7 +2,7 @@ package com.backend.backend.Payload.request;
 
 import com.backend.backend.Model.Pet;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class SignupRequest {
@@ -13,7 +13,7 @@ public class SignupRequest {
     private String email;
 
     private Set<String> roles;
-    private ArrayList<Pet> pets;
+    private List<Pet> pets;
 
 
     private String password;
@@ -50,11 +50,11 @@ public class SignupRequest {
         this.roles = roles;
     }
 
-    public ArrayList<Pet> getPets() {
+    public List<Pet> getPets() {
         return this.pets;
     }
 
-    public void setPets(ArrayList<Pet> pets) {
+    public void setPets(List<Pet> pets) {
         this.pets = pets;
     }
 }
