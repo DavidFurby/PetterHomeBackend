@@ -2,8 +2,7 @@ package com.backend.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+
 
 @SpringBootApplication
 public class BackendApplication {
@@ -12,12 +11,4 @@ public class BackendApplication {
 		SpringApplication.run(BackendApplication.class, args);
 	}
 
-
-	@RestController
-	class TestController {
-		@GetMapping("/")
-		String hello() {
-			return "Hello world"; 
-		}
-	}
 }
