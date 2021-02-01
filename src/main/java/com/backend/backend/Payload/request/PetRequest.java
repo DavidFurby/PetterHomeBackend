@@ -2,14 +2,14 @@ package com.backend.backend.Payload.request;
 
 import java.util.List;
 
-import com.backend.backend.Model.Animal;
+import com.backend.backend.Model.UserAnimal;
 import com.backend.backend.Model.Gender;
 import com.backend.backend.Model.Need;
 
 public class PetRequest {
     private String petName;
     private Integer petAge;
-    private Animal animal;
+    private UserAnimal animal;
     private Gender gender;
     private List<Need> needs;
     private Integer height;
@@ -31,7 +31,7 @@ public class PetRequest {
         this.petAge = petAge;
     }
 
-    public Animal getAnimal() {
+    public UserAnimal getAnimal() {
         return animal;
     }
 
@@ -43,7 +43,7 @@ public class PetRequest {
         this.needs = needs;
     }
 
-    public void setAnimal(Animal animal) {
+    public void setAnimal(UserAnimal animal) {
         this.animal = animal;
     }
 

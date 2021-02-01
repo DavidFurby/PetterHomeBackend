@@ -29,7 +29,7 @@ public class Pet {
     @NotBlank
     private Gender gender;
     @NotBlank
-    private Animal animal;
+    private UserAnimal animal;
 
     private Integer weight;
 
@@ -37,7 +37,7 @@ public class Pet {
 
     private List<Need> needs = new ArrayList<>();
 
-    public Pet(String petName, Integer petAge, Gender gender, Animal animal, Integer weight, Integer height) {
+    public Pet(String petName, Integer petAge, Gender gender, UserAnimal animal, Integer weight, Integer height) {
         String newId;
         this.petName = petName;
         this.petAge = petAge;
@@ -60,7 +60,7 @@ public class Pet {
         this.gender = gender;
     }
 
-    public void setAnimal(Animal animal) {
+    public void setAnimal(UserAnimal animal) {
         this.animal = animal;
     }
 
@@ -76,7 +76,7 @@ public class Pet {
         return petAge;
     }
 
-    public Animal getAnimal() {
+    public UserAnimal getAnimal() {
         return animal;
     }
 

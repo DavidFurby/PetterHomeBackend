@@ -31,4 +31,10 @@ public class Schedule {
     public String getId() {
         return id.toHexString();
     }
+    public String getTime() {
+        return time;
+    }
+    public String assignedTo() {
+        return assignedTo; 
+    }
 }

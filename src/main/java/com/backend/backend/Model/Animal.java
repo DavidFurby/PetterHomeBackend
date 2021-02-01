@@ -1,42 +1,33 @@
 package com.backend.backend.Model;
 
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import java.sql.Array;
+import java.util.ArrayList;
+
+import javax.persistence.Id;
+
 import org.springframework.data.mongodb.core.mapping.Document;
-
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 
 @Document(collection = "Animals")
 public class Animal {
-
-    public void setId(ObjectId id) {
-        this.id = id;
-    }
-
     @Id
-    private ObjectId id = new ObjectId();
+    private String id;
 
-    @NotBlank
-    @Size(max = 20)
-    private final String breed;
+    private String animal;
+    private ArrayList<Object> breeds;
 
-    @NotBlank
-    private final String animal;
-
-    public Animal(String animal, String breed) {
-        ObjectId id;
+    public Animal(String animal, ArrayList<Object> breeds) {
         this.animal = animal;
-        this.breed = breed;
+        this.breeds = breeds;
     }
+
     public String getId() {
-        return id.toHexString();
+        return id;
     }
+
     public String getAnimal() {
         return animal;
     }
-    public String getBreed() {
-        return breed;
+    public ArrayList<Object> getBreeds() {
+        return breeds; 
     }
 }

@@ -35,11 +35,14 @@ public class User {
     private Set<Role> roles = new HashSet<>();
 
     public ArrayList<Pet> pets;
+    public ArrayList<Notification> notifications;
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.pets = pets;
+        this.notifications = notifications;; 
     }
 
 
@@ -87,8 +90,10 @@ public class User {
     public void addPet(Pet newPet) {
         pets.add(newPet);
     }
-
-
-
-
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+    public void setNotifications(ArrayList<Notification> notification) {
+        this.notifications = notification; 
+    }
 }

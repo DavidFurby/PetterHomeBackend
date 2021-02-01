@@ -1,5 +1,6 @@
 package com.backend.backend.Controller;
 
+import com.backend.backend.Model.Animal;
 import com.backend.backend.Model.Need;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.User;
@@ -7,9 +8,11 @@ import com.backend.backend.Payload.request.ChangePasswordRequest;
 import com.backend.backend.Payload.request.NeedRequest;
 import com.backend.backend.Payload.request.PetRequest;
 import com.backend.backend.Payload.response.MessageResponse;
-import com.backend.backend.Repository.UserRepository;
 
-import org.hibernate.mapping.Array;
+import com.backend.backend.Repository.UserRepository;
+import com.backend.backend.Security.services.AnimalService;
+import com.backend.backend.Security.services.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +33,12 @@ public class UserController {
 
     @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    private AnimalService animalService; 
+
+    @Autowired
+    private UserService userService; 
 
     @GetMapping("/getCurrentUser")
     @PreAuthorize("hasRole('USER')")
@@ -78,7 +87,7 @@ public class UserController {
 
         Need need = new Need(needRequest.getType(), needRequest.getNotified(), needRequest.getSchedule());
         setPet.ifPresent(p -> p.addNeed(need));
-        user.ifPresent(u -> userRepository.save(u)); 
+        user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Pets need added successfully!"));
     }
 
@@ -127,5 +136,16 @@ public class UserController {
             @RequestParam String petId) {
 
         return ResponseEntity.ok(new MessageResponse("Pet has been deleted! :( "));
+    }
+
+    @GetMapping("/getAllAnimals")
+    @PreAuthorize("hasRole('USER')")
+    public Collection<Animal> getAllAnimals() {
+        return animalService.getAll(); 
+    }
+    @GetMapping("/getAllUsers")
+    @PreAuthorize("hasRole('USER')")
+    public Collection<User> getAllUsers() {
+        return userService.getAll(); 
     }
 }
