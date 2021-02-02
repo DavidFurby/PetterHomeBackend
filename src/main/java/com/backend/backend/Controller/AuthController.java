@@ -3,7 +3,11 @@ package com.backend.backend.Controller;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.User;
 import javax.validation.Valid;
+
+import com.backend.backend.Model.ReceivedPet;
 import com.backend.backend.Model.ERole;
+import com.backend.backend.Model.Invite;
+import com.backend.backend.Model.Notification;
 import com.backend.backend.Model.Role;
 import com.backend.backend.Payload.request.LoginRequest;
 import com.backend.backend.Payload.request.SignupRequest;
@@ -30,7 +34,7 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("api/auth")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -60,7 +64,8 @@ public class AuthController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
-                new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getPets()));
+                new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getPets(),
+                        userDetails.getNotifications(), userDetails.getInvites()));
     }
 
     @PostMapping("/register")
@@ -84,7 +89,9 @@ public class AuthController {
         Set<String> strRoles = signUpRequest.getRoles();
         ArrayList<Pet> pets = new ArrayList<>();
         Set<Role> roles = new HashSet<>();
-
+        ArrayList<Notification> notifications = new ArrayList<>();
+        ArrayList<Invite> invites = new ArrayList<>(); 
+        ArrayList<ReceivedPet> acceptedPets = new ArrayList<>();
         if (strRoles == null) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
@@ -114,6 +121,9 @@ public class AuthController {
 
         user.setRoles(roles);
         user.setPets(pets);
+        user.setInvites(invites);
+        user.setNotifications(notifications);
+        user.setAcceptedPets(acceptedPets);
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
@@ -124,15 +134,18 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(changePasswordRequest.getUsername(), changePasswordRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
 
-        String newPassword = changePasswordRequest.getNewPassword();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+        String newPassword = changePasswordRequest.getNewPassword();      
         Optional<User> user = userRepository.findByUsername(changePasswordRequest.getUsername());
         user.ifPresent(b -> b.setPassword(encoder.encode(newPassword)));
         user.ifPresent(b -> userRepository.save(b));
         return ResponseEntity.ok(new MessageResponse("password changed successfully!"));
+    
     }
+    @GetMapping("/test")
+    public String test() {
+        return "test"; 
+    }
+
+
 }

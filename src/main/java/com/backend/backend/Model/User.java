@@ -11,8 +11,8 @@ import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Document(collection = "Users")
 public class User {
@@ -34,22 +34,24 @@ public class User {
     @DBRef
     private Set<Role> roles = new HashSet<>();
 
-    public ArrayList<Pet> pets;
+    public List<Pet> pets;
     public ArrayList<Notification> notifications;
+    public List<Invite> invites;
+    public ArrayList<ReceivedPet> acceptedPets; 
 
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.pets = pets;
-        this.notifications = notifications;; 
+        this.notifications = notifications;
+        this.invites = invites;
+        this.acceptedPets = acceptedPets;
     }
-
 
     public String getId() {
         return id;
     }
-
 
     public String getUsername() {
         return username;
@@ -62,7 +64,6 @@ public class User {
     public String getEmail() {
         return email;
     }
-
 
     public String getPassword() {
         return password;
@@ -83,17 +84,45 @@ public class User {
     public List<Pet> getPets() {
         return pets;
     }
-    public void setPets(ArrayList<Pet> pets) {
+
+    public void setPets(List<Pet> pets) {
         this.pets = pets;
     }
 
     public void addPet(Pet newPet) {
         pets.add(newPet);
     }
+
     public List<Notification> getNotifications() {
         return notifications;
     }
+
     public void setNotifications(ArrayList<Notification> notification) {
-        this.notifications = notification; 
+        this.notifications = notification;
     }
+
+    public List<Invite> getInvites() {
+        return invites;
+    }
+
+    public Object addNotification(Notification notification) {
+        return notifications.add(notification);
+    }
+
+    public void setInvites(List<Invite> removeInvite) {
+        this.invites = removeInvite;
+    }
+
+    public Object addInvite(Invite invite) {
+        return invites.add(invite);
+    }
+
+	public void setAcceptedPets(ArrayList<ReceivedPet> acceptedPets) {
+        this.acceptedPets = acceptedPets; 
+	}
+
+	public Object acceptPet(ReceivedPet acceptedPet) {
+		return acceptedPets.add(acceptedPet);
+	}
+
 }

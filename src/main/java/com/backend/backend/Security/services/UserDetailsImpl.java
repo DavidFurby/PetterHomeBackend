@@ -1,5 +1,7 @@
 package com.backend.backend.Security.services;
 
+import com.backend.backend.Model.Invite;
+import com.backend.backend.Model.Notification;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,9 +28,13 @@ public class UserDetailsImpl implements UserDetails {
 
     private final List<Pet> pets;
 
+    private final List<Notification> notifications;
+
+    private final List<Invite> invites; 
 
     public UserDetailsImpl(String id, String username, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities, List<Pet> pets) {
+            Collection<? extends GrantedAuthority> authorities, List<Pet> pets, List<Notification> notifications,
+            List<Invite> invites) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -36,21 +42,18 @@ public class UserDetailsImpl implements UserDetails {
         this.password = password;
         this.authorities = authorities;
         this.pets = pets;
+        this.notifications = notifications;
+        this.invites = invites;
     }
 
     public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
-                .collect(Collectors.toList());
+                .map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
         List<Pet> pets = user.getPets();
-        return new UserDetailsImpl(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword(),
-                authorities,
-                pets
-        );
+        List<Notification> notifications = user.getNotifications();
+        List<Invite> invites = user.getInvites();
+        return new UserDetailsImpl(user.getId(), user.getUsername(), user.getEmail(), user.getPassword(), authorities,
+                pets, notifications, invites);
     }
 
     @Override
@@ -112,5 +115,13 @@ public class UserDetailsImpl implements UserDetails {
 
     public String setPassword(String password) {
         return this.password = password;
+    }
+
+    public List<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public List<Invite> getInvites() {
+        return invites;
     }
 }
