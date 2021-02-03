@@ -3,6 +3,7 @@ package com.backend.backend.Controller;
 import com.backend.backend.Model.ReceivedPet;
 import com.backend.backend.Model.Animal;
 import com.backend.backend.Model.Invite;
+import com.backend.backend.Model.InviteObject;
 import com.backend.backend.Model.Need;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.User;
@@ -223,7 +224,7 @@ public class UserController {
         Optional<Invite> setInvite = filterInvites.stream().findFirst();
 
         String receivedPetId = setInvite.get().getPetId();
-        
+
         String senderId = setInvite.get().getUserId();
         Optional<User> opSender = userRepository.findById(senderId);
         ReceivedPet acceptedPet = new ReceivedPet(receivedPetId, senderId);
@@ -312,6 +313,60 @@ public class UserController {
         Optional<Pet> correctPet = filterSenderPets.stream().findFirst();
 
         return correctPet;
+    }
+
+    @GetMapping("getAllInvites")
+    @PreAuthorize("hasRole('USER')")
+    public Object getAllInvites(@RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<Invite> invites = user.getInvites();
+        List<User> senders = new ArrayList<>();
+        List<Pet> pets = new ArrayList<>();
+        List<InviteObject> objects = new ArrayList<>();
+
+        for (Invite invite : invites) {
+            String senderId = invite.getUserId();
+            Optional<User> opSender = userRepository.findById(senderId);
+            User realSender = opSender.get();
+            if (realSender.getId().equals(invite.userId)) {
+                senders.add(realSender);
+
+            }
+        }
+        for (User tempUser : senders) {
+            List<Pet> userPets = tempUser.getPets();
+            for (Pet currentPet : userPets) {
+                for (Invite invite : invites) {
+                    if (currentPet.getId().equals(invite.getPetId())) {
+                        InviteObject inviteObject = new InviteObject(tempUser, currentPet);
+                        objects.add(inviteObject); 
+                    }
+                }
+            }
+        }
+        return objects;
+    }
+
+    @GetMapping("/getSharedWithUsers")
+    @PreAuthorize("hasRole('USER')")
+    public Object getSharedWithUsers(@RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<Pet> pets = user.getPets();
+        List<Pet> filterPets = new ArrayList<>();
+        for (Pet pet : pets) {
+            if (pet.getId().equals(petId)) {
+                filterPets.add(pet);
+            }
+        }
+        Optional<Pet> opPet = filterPets.stream().findFirst();
+        Pet realPet = opPet.get();
+        List<String> users = realPet.getSharedWith();
+        return users;
     }
 
     @GetMapping("/getAllAnimals")
