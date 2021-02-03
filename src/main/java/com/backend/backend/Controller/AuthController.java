@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("api/auth")
@@ -52,7 +51,7 @@ public class AuthController {
     JwtUtils jwtUtils;
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser( @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -63,23 +62,24 @@ public class AuthController {
         List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(
-                new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getPets(),
-                        userDetails.getNotifications(), userDetails.getInvites()));
+        return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(),
+                userDetails.getEmail(), roles, userDetails.getPets(), userDetails.getNotifications(),
+                userDetails.getInvites(), userDetails.getReceivedPets()));
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
-        } if(signUpRequest.getUsername() == null) {
+        }
+        if (signUpRequest.getUsername() == null) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: A username must be selected!"));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
         }
-        if(signUpRequest.getEmail() == null) {
+        if (signUpRequest.getEmail() == null) {
             return ResponseEntity.badRequest().body(new MessageResponse("Error: An email must be selected"));
         }
 
@@ -90,8 +90,8 @@ public class AuthController {
         ArrayList<Pet> pets = new ArrayList<>();
         Set<Role> roles = new HashSet<>();
         ArrayList<Notification> notifications = new ArrayList<>();
-        ArrayList<Invite> invites = new ArrayList<>(); 
-        ArrayList<ReceivedPet> acceptedPets = new ArrayList<>();
+        ArrayList<Invite> invites = new ArrayList<>();
+        ArrayList<ReceivedPet> receivedPets = new ArrayList<>();
         if (strRoles == null) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
@@ -123,29 +123,30 @@ public class AuthController {
         user.setPets(pets);
         user.setInvites(invites);
         user.setNotifications(notifications);
-        user.setAcceptedPets(acceptedPets);
+        user.setReceivedPets(receivedPets);
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
+
     @PutMapping("/recoverPassword")
     public ResponseEntity<?> recoverPassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(changePasswordRequest.getUsername(), changePasswordRequest.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                changePasswordRequest.getUsername(), changePasswordRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String newPassword = changePasswordRequest.getNewPassword();      
+        String newPassword = changePasswordRequest.getNewPassword();
         Optional<User> user = userRepository.findByUsername(changePasswordRequest.getUsername());
         user.ifPresent(b -> b.setPassword(encoder.encode(newPassword)));
         user.ifPresent(b -> userRepository.save(b));
         return ResponseEntity.ok(new MessageResponse("password changed successfully!"));
-    
-    }
-    @GetMapping("/test")
-    public String test() {
-        return "test"; 
+
     }
 
+    @GetMapping("/test")
+    public String test() {
+        return "check";
+    }
 
 }

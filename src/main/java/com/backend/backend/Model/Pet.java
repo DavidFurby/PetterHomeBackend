@@ -36,7 +36,7 @@ public class Pet {
     private Integer height;
 
     private List<Need> needs = new ArrayList<>();
-    private List<User> sharedWith = new ArrayList<>();
+    private List<String> sharedWithList = new ArrayList<>();
 
     public Pet(String petName, Integer petAge, Gender gender, UserAnimal animal, Integer weight, Integer height) {
         this.petName = petName;
@@ -46,7 +46,7 @@ public class Pet {
         this.weight = weight;
         this.height = height;
         this.needs = needs;
-        this.sharedWith = sharedWith;
+        this.sharedWithList = sharedWithList;
     }
 
     public void setPetName(String petName) {
@@ -108,16 +108,16 @@ public class Pet {
         return height;
     }
 
-    public List<User> getSharedWith() {
-        return sharedWith;
+    public List<String> getSharedWith() {
+        return sharedWithList;
     }
 
-    public void setSharedWith(List<User> sharedWith) {
-        this.sharedWith = sharedWith;
+    public void setSharedWith(List<String> sharedWithList) {
+        this.sharedWithList = sharedWithList;
     }
 
-	public Object addSharedWith(User user) {
-		return sharedWith.add(user);
+	public boolean addSharedWith(String sharedWith) {
+		return sharedWithList.add(sharedWith);
 	}
 
 	public void setWeight(Integer weight2) {

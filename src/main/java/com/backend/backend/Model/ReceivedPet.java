@@ -16,23 +16,23 @@ public class ReceivedPet {
     private ObjectId id = new ObjectId();
 
     @NotBlank
-    private Invite invite; 
-    private Pet pet;
-    private User user; 
-    public ReceivedPet(@NotBlank Pet pet, User user) {
+    private String petId;
+    @NotBlank
+    private String senderId; 
+    public ReceivedPet(@NotBlank String petId, String senderId) {
         ObjectId id;
-        this.pet = pet;
-        this.user = user;  
+        this.petId = petId;
+        this.senderId = senderId;  
     }
 
     public String getId() {
         return id.toHexString();
     }
 
-    public Pet getPet() {
-        return pet;
+    public String getPetId() {
+        return petId;
     }
-    public User getUser() {
-        return user; 
+    public String getUserId() {
+        return senderId; 
     }
 }

@@ -3,10 +3,9 @@ package com.backend.backend.Payload.response;
 import com.backend.backend.Model.Invite;
 import com.backend.backend.Model.Notification;
 import com.backend.backend.Model.Pet;
+import com.backend.backend.Model.ReceivedPet;
 
 import java.util.List;
-import java.util.List;
-
 
 public class JwtResponse {
     private String token;
@@ -17,9 +16,11 @@ public class JwtResponse {
     private final List<String> roles;
     private final List<Pet> pets;
     private final List<Notification> notifications;
-    private final List<Invite> invites; 
+    private final List<Invite> invites;
+    private final List<ReceivedPet> receivedPets;
 
-    public JwtResponse(String accessToken, String id, String username, String email, List<String> roles, List<Pet> pets, List<Notification> notifications, List<Invite> invites) {
+    public JwtResponse(String accessToken, String id, String username, String email, List<String> roles, List<Pet> pets,
+            List<Notification> notifications, List<Invite> invites, List<ReceivedPet> receivedPets) {
         this.token = accessToken;
         this.id = id;
         this.username = username;
@@ -27,7 +28,8 @@ public class JwtResponse {
         this.roles = roles;
         this.pets = pets;
         this.notifications = notifications;
-        this.invites = invites; 
+        this.invites = invites;
+        this.receivedPets = receivedPets;
     }
 
     public String getAccessToken() {
@@ -73,13 +75,21 @@ public class JwtResponse {
     public List<String> getRoles() {
         return roles;
     }
+
     public List<Pet> getPets() {
         return pets;
     }
+
     public List<Notification> getNotifications() {
-        return notifications; 
+        return notifications;
     }
+
     public List<Invite> getInvites() {
-        return invites; 
+        return invites;
     }
+
+    public List<ReceivedPet> getReceivedPets() {
+        return receivedPets;
+    }
+
 }

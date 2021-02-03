@@ -3,6 +3,7 @@ package com.backend.backend.Security.services;
 import com.backend.backend.Model.Invite;
 import com.backend.backend.Model.Notification;
 import com.backend.backend.Model.Pet;
+import com.backend.backend.Model.ReceivedPet;
 import com.backend.backend.Model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,11 +31,12 @@ public class UserDetailsImpl implements UserDetails {
 
     private final List<Notification> notifications;
 
-    private final List<Invite> invites; 
+    private final List<Invite> invites;
+    private final List<ReceivedPet> receivedPets;
 
     public UserDetailsImpl(String id, String username, String email, String password,
             Collection<? extends GrantedAuthority> authorities, List<Pet> pets, List<Notification> notifications,
-            List<Invite> invites) {
+            List<Invite> invites, List<ReceivedPet> receivedPets) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -44,6 +46,7 @@ public class UserDetailsImpl implements UserDetails {
         this.pets = pets;
         this.notifications = notifications;
         this.invites = invites;
+        this.receivedPets = receivedPets;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -52,8 +55,9 @@ public class UserDetailsImpl implements UserDetails {
         List<Pet> pets = user.getPets();
         List<Notification> notifications = user.getNotifications();
         List<Invite> invites = user.getInvites();
+        List<ReceivedPet> receivedPets = user.getReceivedPets(); 
         return new UserDetailsImpl(user.getId(), user.getUsername(), user.getEmail(), user.getPassword(), authorities,
-                pets, notifications, invites);
+                pets, notifications, invites, receivedPets);
     }
 
     @Override
@@ -123,5 +127,9 @@ public class UserDetailsImpl implements UserDetails {
 
     public List<Invite> getInvites() {
         return invites;
+    }
+
+    public List<ReceivedPet> getReceivedPets() {
+        return receivedPets;
     }
 }

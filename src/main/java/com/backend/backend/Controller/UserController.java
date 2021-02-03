@@ -23,10 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -200,22 +198,13 @@ public class UserController {
 
     @PostMapping("/sendInvite")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> sendInvite(@Valid @RequestParam Map<String, String> id) {
+    public ResponseEntity<MessageResponse> sendInvite(@Valid @RequestBody InviteRequest inviteRequest,
+            @RequestParam Map<String, String> id) {
         String userId = id.get("userId");
         String petId = id.get("petId");
-        String receiverId = id.get("receiverId");
+        Optional<User> receiver = userRepository.findByUsername(inviteRequest.getUsername());
 
-        Optional<User> sender = userRepository.findById(userId);
-        Optional<User> receiver = userRepository.findById(receiverId);
-        List<Pet> pets = sender.get().pets;
-
-        List<Pet> filterPets = pets.stream().filter(p -> p.getId().equals(petId)).collect(Collectors.toList());
-        Optional<Pet> setPet = filterPets.stream().findFirst();
-
-        Pet getPet = setPet.get();
-        User getSender = sender.get();
-
-        Invite invite = new Invite(getPet, getSender);
+        Invite invite = new Invite(userId, petId);
         receiver.ifPresent(u -> u.addInvite(invite));
         receiver.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Invite has been sent!"));
@@ -228,39 +217,101 @@ public class UserController {
         String inviteId = id.get("inviteId");
 
         Optional<User> receiver = userRepository.findById(userId);
-        User user = receiver.get();
         List<Invite> invites = receiver.get().invites;
         List<Invite> filterInvites = invites.stream().filter(i -> i.getId().equals(inviteId))
                 .collect(Collectors.toList());
         Optional<Invite> setInvite = filterInvites.stream().findFirst();
 
-        Pet receivedPet = setInvite.get().pet;
-        User sender = setInvite.get().user;
-        Optional<User> opSender = userRepository.findById(sender.getId());
-        ReceivedPet acceptedPet = new ReceivedPet(receivedPet, sender);
+        String receivedPetId = setInvite.get().getPetId();
+        
+        String senderId = setInvite.get().getUserId();
+        Optional<User> opSender = userRepository.findById(senderId);
+        ReceivedPet acceptedPet = new ReceivedPet(receivedPetId, senderId);
+        User sender = opSender.get();
         List<Pet> senderPets = sender.getPets();
 
         List<Pet> updatePets = new ArrayList<>();
         for (Pet pet : senderPets) {
-            if (pet.getId().equals(receivedPet.getId())) {
-                pet.addSharedWith(user);
+            if (pet.getId().equals(receivedPetId)) {
+                pet.addSharedWith(senderId);
                 updatePets.add(pet);
             } else {
                 updatePets.add(pet);
 
             }
         }
-        receiver.ifPresent(u -> receivedPet.addSharedWith(u));
 
         opSender.ifPresent(u -> u.setPets(updatePets));
         opSender.ifPresent(u -> userRepository.save(u));
 
-        receiver.ifPresent(u -> u.acceptPet(acceptedPet));
+        receiver.ifPresent(u -> u.receivePet(acceptedPet));
         List<Invite> removeInvite = invites.stream().filter(i -> !i.getId().equals(inviteId))
                 .collect(Collectors.toList());
         receiver.ifPresent(u -> u.setInvites(removeInvite));
         receiver.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Invite has been accepted!"));
+    }
+
+    @GetMapping("/getAllAcceptedPets")
+    @PreAuthorize("hasRole('USER')")
+    public Object getAllAcceptedPets(@RequestParam String userId) {
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<ReceivedPet> receivedPets = user.getReceivedPets();
+        List<String> petIds = new ArrayList<>();
+        for (ReceivedPet receivedPet : receivedPets) {
+            String petId = receivedPet.getPetId();
+            petIds.add(petId);
+        }
+        List<User> users = new ArrayList<User>();
+        List<Pet> pets = new ArrayList<Pet>();
+        for (ReceivedPet receivedPet : receivedPets) {
+            Optional<User> tempUser = userRepository.findById(receivedPet.getUserId());
+            User realUser = tempUser.get();
+            users.add(realUser);
+        }
+        for (User listUser : users) {
+            List<Pet> tempPets = listUser.getPets();
+            for (Pet tempPet : tempPets) {
+                for (String petId : petIds) {
+                    if (tempPet.getId().equals(petId))
+                        pets.add(tempPet);
+                }
+            }
+        }
+        return pets;
+    }
+
+    @GetMapping("/getAcceptedPetById")
+    @PreAuthorize("hasRole('USER')")
+    public Object getAcceptedPetById(@RequestParam Map<String, String> id) {
+        String receivedPetId = id.get("receivedPetId");
+        String userId = id.get("userId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<ReceivedPet> receivedPets = user.getReceivedPets();
+        List<ReceivedPet> filterPets = new ArrayList<>();
+        for (ReceivedPet pet : receivedPets) {
+            if (pet.getId().equals(receivedPetId)) {
+                filterPets.add(pet);
+            }
+        }
+        Optional<ReceivedPet> opPet = filterPets.stream().findFirst();
+        ReceivedPet receivedPet = opPet.get();
+        String senderId = receivedPet.getUserId();
+        String petId = receivedPet.getPetId();
+        Optional<User> opSender = userRepository.findById(senderId);
+        User realSender = opSender.get();
+        List<Pet> senderPets = realSender.getPets();
+        List<Pet> filterSenderPets = new ArrayList<>();
+        for (Pet senderPet : senderPets) {
+            if (senderPet.getId().equals(petId)) {
+                filterSenderPets.add(senderPet);
+            }
+        }
+        Optional<Pet> correctPet = filterSenderPets.stream().findFirst();
+
+        return correctPet;
     }
 
     @GetMapping("/getAllAnimals")

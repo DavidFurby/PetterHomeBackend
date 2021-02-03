@@ -1,7 +1,5 @@
 package com.backend.backend.Model;
 
-import java.util.List;
-import java.util.Optional;
 
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
@@ -20,24 +18,26 @@ public class Invite {
     private ObjectId id = new ObjectId();
 
     @NotBlank
-	public Pet pet;
+    public String petId;
     @NotBlank
-	public User user;
+    public String userId;
 
-    public Invite(@NotBlank Pet pet, User user) {
-        this.pet = pet;
-        this.user = user;
+    public Invite(@NotBlank String userId, String petId) {
+        ObjectId id;
+
+        this.userId = userId;
+        this.petId = petId;
     }
 
     public String getId() {
         return id.toHexString();
     }
 
-    public Pet getPet() {
-        return pet;
+    public String getPetId() {
+        return petId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 }

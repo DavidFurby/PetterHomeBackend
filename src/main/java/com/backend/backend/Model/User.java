@@ -11,7 +11,6 @@ import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Document(collection = "Users")
@@ -35,9 +34,9 @@ public class User {
     private Set<Role> roles = new HashSet<>();
 
     public List<Pet> pets;
-    public ArrayList<Notification> notifications;
+    public List<Notification> notifications;
     public List<Invite> invites;
-    public ArrayList<ReceivedPet> acceptedPets; 
+    public List<ReceivedPet> receivedPets; 
 
     public User(String username, String email, String password) {
         this.username = username;
@@ -46,7 +45,7 @@ public class User {
         this.pets = pets;
         this.notifications = notifications;
         this.invites = invites;
-        this.acceptedPets = acceptedPets;
+        this.receivedPets = receivedPets;
     }
 
     public String getId() {
@@ -117,12 +116,14 @@ public class User {
         return invites.add(invite);
     }
 
-	public void setAcceptedPets(ArrayList<ReceivedPet> acceptedPets) {
-        this.acceptedPets = acceptedPets; 
+	public void setReceivedPets(ArrayList<ReceivedPet> receivedPets) {
+        this.receivedPets = receivedPets; 
 	}
 
-	public Object acceptPet(ReceivedPet acceptedPet) {
-		return acceptedPets.add(acceptedPet);
+	public List<ReceivedPet> getReceivedPets() {
+		return receivedPets;
 	}
-
+    public Object receivePet(ReceivedPet receivedPet) {
+		return receivedPets.add(receivedPet);
+	}
 }
