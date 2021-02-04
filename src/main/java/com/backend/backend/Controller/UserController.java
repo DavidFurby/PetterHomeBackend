@@ -204,8 +204,22 @@ public class UserController {
         String userId = id.get("userId");
         String petId = id.get("petId");
         Optional<User> receiver = userRepository.findByUsername(inviteRequest.getUsername());
-
+        User realReceiver = receiver.get();
         Invite invite = new Invite(userId, petId);
+        List<Invite> receiverInvites = realReceiver.getInvites();
+
+        List<ReceivedPet> receiverReceivedPets = realReceiver.getReceivedPets();
+        for (Invite tempInvite : receiverInvites) {
+            if (tempInvite.getPetId().equals(invite.getPetId())) {
+                return ResponseEntity.ok(new MessageResponse("Invite for this pet has already been sent!"));
+            }
+        }
+        for (ReceivedPet receivedPet : receiverReceivedPets) {
+            if (receivedPet.getPetId().equals(invite.getPetId())) {
+                return ResponseEntity.ok(new MessageResponse("This pet has already been received by that user!"));
+            }
+        }
+
         receiver.ifPresent(u -> u.addInvite(invite));
         receiver.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Invite has been sent!"));
@@ -317,15 +331,13 @@ public class UserController {
 
     @GetMapping("getAllInvites")
     @PreAuthorize("hasRole('USER')")
-    public Object getAllInvites(@RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
+    public Object getAllInvites(@RequestParam String userId) {
         Optional<User> opUser = userRepository.findById(userId);
         User user = opUser.get();
         List<Invite> invites = user.getInvites();
         List<User> senders = new ArrayList<>();
         List<Pet> pets = new ArrayList<>();
-        List<InviteObject> objects = new ArrayList<>();
-
+        List<InviteObject> objectList = new ArrayList<>();
         for (Invite invite : invites) {
             String senderId = invite.getUserId();
             Optional<User> opSender = userRepository.findById(senderId);
@@ -340,13 +352,14 @@ public class UserController {
             for (Pet currentPet : userPets) {
                 for (Invite invite : invites) {
                     if (currentPet.getId().equals(invite.getPetId())) {
-                        InviteObject inviteObject = new InviteObject(tempUser, currentPet);
-                        objects.add(inviteObject); 
+                        InviteObject test = new InviteObject(invite.getId(), tempUser, currentPet);
+                        objectList.add(test);
                     }
                 }
             }
         }
-        return objects;
+
+        return objectList;
     }
 
     @GetMapping("/getSharedWithUsers")
@@ -366,7 +379,13 @@ public class UserController {
         Optional<Pet> opPet = filterPets.stream().findFirst();
         Pet realPet = opPet.get();
         List<String> users = realPet.getSharedWith();
-        return users;
+        List<User> realUsers = new ArrayList<>();
+        for (String sender : users) {
+            Optional<User> tempUser = userRepository.findById(sender);
+            User realUser = tempUser.get();
+            realUsers.add(realUser);
+        }
+        return realUsers;
     }
 
     @GetMapping("/getAllAnimals")
