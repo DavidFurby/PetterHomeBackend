@@ -191,9 +191,29 @@ public class UserController {
 
     @DeleteMapping("/deletePetFromUser")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> deletePetFromUser(@Valid @RequestBody PetRequest petRequest,
-            @RequestParam String petId) {
+    public ResponseEntity<MessageResponse> deletePetFromUser(@Valid @RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User realUser = opUser.get();
+        List<Pet> pets = realUser.getPets();
+        List<Pet> filterPets = pets.stream().filter(p -> !p.getId().equals(petId)).collect(Collectors.toList());
+        /*
+         * List<User> allUsers = userRepository.findAll(); for (User listUser :
+         * allUsers) { List<Invite> listInvites = listUser.getInvites(); List<Invite>
+         * filterInvites = new ArrayList<>(); List<ReceivedPet> listReceivedPets =
+         * listUser.getReceivedPets(); List<ReceivedPet> filterReceivedPets = new
+         * ArrayList<>(); for (Invite listInvite : listInvites) { if
+         * (!listInvite.getPetId().equals(petId)) { filterInvites.add(listInvite); } }
+         * for (ReceivedPet listReceivedPet : listReceivedPets) { if
+         * (!listReceivedPet.getPetId().equals(petId)) {
+         * filterReceivedPets.add(listReceivedPet); } }
+         * listUser.setInvites(filterInvites);
+         * listUser.setReceivedPets(filterReceivedPets); }
+         */
 
+        opUser.ifPresent(u -> u.setPets(filterPets));
+        opUser.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Pet has been deleted! :( "));
     }
 
@@ -267,37 +287,7 @@ public class UserController {
         return ResponseEntity.ok(new MessageResponse("Invite has been accepted!"));
     }
 
-    @GetMapping("/getAllAcceptedPets")
-    @PreAuthorize("hasRole('USER')")
-    public Object getAllAcceptedPets(@RequestParam String userId) {
-        Optional<User> opUser = userRepository.findById(userId);
-        User user = opUser.get();
-        List<ReceivedPet> receivedPets = user.getReceivedPets();
-        List<String> petIds = new ArrayList<>();
-        for (ReceivedPet receivedPet : receivedPets) {
-            String petId = receivedPet.getPetId();
-            petIds.add(petId);
-        }
-        List<User> users = new ArrayList<User>();
-        List<Pet> pets = new ArrayList<Pet>();
-        for (ReceivedPet receivedPet : receivedPets) {
-            Optional<User> tempUser = userRepository.findById(receivedPet.getUserId());
-            User realUser = tempUser.get();
-            users.add(realUser);
-        }
-        for (User listUser : users) {
-            List<Pet> tempPets = listUser.getPets();
-            for (Pet tempPet : tempPets) {
-                for (String petId : petIds) {
-                    if (tempPet.getId().equals(petId))
-                        pets.add(tempPet);
-                }
-            }
-        }
-        return pets;
-    }
-
-    @GetMapping("/getAcceptedPetById")
+    @GetMapping("/getReceivedPetById")
     @PreAuthorize("hasRole('USER')")
     public Object getAcceptedPetById(@RequestParam Map<String, String> id) {
         String receivedPetId = id.get("receivedPetId");
@@ -329,35 +319,59 @@ public class UserController {
         return correctPet;
     }
 
+    @GetMapping("/getReceivedPets")
+    @PreAuthorize("hasRole('USER')")
+    public Object getReceivedPets(@RequestParam String userId) {
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<ReceivedPet> receivedPets = user.getReceivedPets();
+        List<InviteObject> receivedPetObjects = new ArrayList<>();
+        List<ReceivedPet> updatedReceivedPets = new ArrayList<>();
+        for (ReceivedPet receivedPet : receivedPets) {
+            String senderId = receivedPet.getUserId();
+            Optional<User> opSender = userRepository.findById(senderId);
+            User realSender = opSender.get();
+            List<Pet> senderPets = realSender.getPets();
+            InviteObject inviteObject = null;
+            for (Pet pet : senderPets) {
+                if (pet.getId().equals(receivedPet.getPetId())) {
+                    inviteObject = new InviteObject(receivedPet.getId(), realSender, pet);
+                    ReceivedPet updatedReceivedPet = new ReceivedPet(pet.getId(), senderId);
+                    receivedPetObjects.add(inviteObject);
+                    updatedReceivedPets.add(updatedReceivedPet);
+                }
+            }
+        }
+        opUser.ifPresent(u -> u.setReceivedPets(updatedReceivedPets));
+        opUser.ifPresent(u -> userRepository.save(u));
+        return receivedPetObjects;
+    }
+
     @GetMapping("getAllInvites")
     @PreAuthorize("hasRole('USER')")
     public Object getAllInvites(@RequestParam String userId) {
         Optional<User> opUser = userRepository.findById(userId);
         User user = opUser.get();
         List<Invite> invites = user.getInvites();
-        List<User> senders = new ArrayList<>();
-        List<Pet> pets = new ArrayList<>();
         List<InviteObject> objectList = new ArrayList<>();
+        List<Invite> updatedInvites = new ArrayList<>();
         for (Invite invite : invites) {
             String senderId = invite.getUserId();
             Optional<User> opSender = userRepository.findById(senderId);
             User realSender = opSender.get();
-            if (realSender.getId().equals(invite.userId)) {
-                senders.add(realSender);
-
-            }
-        }
-        for (User tempUser : senders) {
-            List<Pet> userPets = tempUser.getPets();
-            for (Pet currentPet : userPets) {
-                for (Invite invite : invites) {
-                    if (currentPet.getId().equals(invite.getPetId())) {
-                        InviteObject test = new InviteObject(invite.getId(), tempUser, currentPet);
-                        objectList.add(test);
-                    }
+            List<Pet> senderPets = realSender.getPets();
+            InviteObject inviteObject = null;
+            for (Pet pet : senderPets) {
+                if (pet.getId().equals(invite.getPetId())) {
+                    inviteObject = new InviteObject(invite.getId(), realSender, pet);
+                    Invite updatedInvite = new Invite(senderId, pet.getId());
+                    objectList.add(inviteObject);
+                    updatedInvites.add(updatedInvite);
                 }
             }
         }
+        opUser.ifPresent(u -> u.setInvites(updatedInvites));
+        opUser.ifPresent(u -> userRepository.save(u));
 
         return objectList;
     }
@@ -386,6 +400,12 @@ public class UserController {
             realUsers.add(realUser);
         }
         return realUsers;
+    }
+
+    @PostMapping("/createNotification")
+    public ResponseEntity<MessageResponse> createNotifications(@RequestParam Map<String, String> id) {
+
+        return ResponseEntity.ok(new MessageResponse("Notification has been made"));
     }
 
     @GetMapping("/getAllAnimals")

@@ -116,8 +116,8 @@ public class User {
         return invites.add(invite);
     }
 
-	public void setReceivedPets(ArrayList<ReceivedPet> receivedPets) {
-        this.receivedPets = receivedPets; 
+	public void setReceivedPets(List<ReceivedPet> filterReceivedPets) {
+        this.receivedPets = filterReceivedPets; 
 	}
 
 	public List<ReceivedPet> getReceivedPets() {
