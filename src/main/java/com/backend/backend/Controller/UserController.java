@@ -226,8 +226,8 @@ public class UserController {
         Optional<User> receiver = userRepository.findByUsername(inviteRequest.getUsername());
         User realReceiver = receiver.get();
         Invite invite = new Invite(userId, petId);
+        
         List<Invite> receiverInvites = realReceiver.getInvites();
-
         List<ReceivedPet> receiverReceivedPets = realReceiver.getReceivedPets();
         for (Invite tempInvite : receiverInvites) {
             if (tempInvite.getPetId().equals(invite.getPetId())) {
@@ -326,7 +326,6 @@ public class UserController {
         User user = opUser.get();
         List<ReceivedPet> receivedPets = user.getReceivedPets();
         List<InviteObject> receivedPetObjects = new ArrayList<>();
-        List<ReceivedPet> updatedReceivedPets = new ArrayList<>();
         for (ReceivedPet receivedPet : receivedPets) {
             String senderId = receivedPet.getUserId();
             Optional<User> opSender = userRepository.findById(senderId);
@@ -336,13 +335,14 @@ public class UserController {
             for (Pet pet : senderPets) {
                 if (pet.getId().equals(receivedPet.getPetId())) {
                     inviteObject = new InviteObject(receivedPet.getId(), realSender, pet);
-                    ReceivedPet updatedReceivedPet = new ReceivedPet(pet.getId(), senderId);
                     receivedPetObjects.add(inviteObject);
-                    updatedReceivedPets.add(updatedReceivedPet);
                 }
             }
+            if (inviteObject.equals(null)) {
+                receivedPets.stream().filter(i -> !i.getId().equals(receivedPet.getId())).collect(Collectors.toList());
+            }
         }
-        opUser.ifPresent(u -> u.setReceivedPets(updatedReceivedPets));
+        opUser.ifPresent(u -> u.setReceivedPets(receivedPets));
         opUser.ifPresent(u -> userRepository.save(u));
         return receivedPetObjects;
     }
@@ -354,7 +354,6 @@ public class UserController {
         User user = opUser.get();
         List<Invite> invites = user.getInvites();
         List<InviteObject> objectList = new ArrayList<>();
-        List<Invite> updatedInvites = new ArrayList<>();
         for (Invite invite : invites) {
             String senderId = invite.getUserId();
             Optional<User> opSender = userRepository.findById(senderId);
@@ -364,13 +363,14 @@ public class UserController {
             for (Pet pet : senderPets) {
                 if (pet.getId().equals(invite.getPetId())) {
                     inviteObject = new InviteObject(invite.getId(), realSender, pet);
-                    Invite updatedInvite = new Invite(senderId, pet.getId());
                     objectList.add(inviteObject);
-                    updatedInvites.add(updatedInvite);
                 }
             }
+            if (inviteObject.equals(null)) {
+                invites.stream().filter(i -> !i.getId().equals(invite.getId())).collect(Collectors.toList());
+            }
         }
-        opUser.ifPresent(u -> u.setInvites(updatedInvites));
+        opUser.ifPresent(u -> u.setInvites(invites));
         opUser.ifPresent(u -> userRepository.save(u));
 
         return objectList;

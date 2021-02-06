@@ -34,7 +34,7 @@ public class Schedule {
     public String getTime() {
         return time;
     }
-    public String assignedTo() {
+    public String getAssignedTo() {
         return assignedTo; 
     }
 }
