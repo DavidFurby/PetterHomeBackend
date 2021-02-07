@@ -231,7 +231,7 @@ public class UserController {
         List<ReceivedPet> receiverReceivedPets = realReceiver.getReceivedPets();
         for (Invite tempInvite : receiverInvites) {
             if (tempInvite.getPetId().equals(invite.getPetId())) {
-                return ResponseEntity.ok(new MessageResponse("Invite for this pet has already been sent!"));
+                return ResponseEntity.ok(new MessageResponse("Invite for this pet has already been sent to this user!"));
             }
         }
         for (ReceivedPet receivedPet : receiverReceivedPets) {
@@ -268,7 +268,7 @@ public class UserController {
         List<Pet> updatePets = new ArrayList<>();
         for (Pet pet : senderPets) {
             if (pet.getId().equals(receivedPetId)) {
-                pet.addSharedWith(senderId);
+                pet.addSharedWith(userId);
                 updatePets.add(pet);
             } else {
                 updatePets.add(pet);
