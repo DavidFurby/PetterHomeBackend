@@ -20,12 +20,12 @@ public class Schedule {
     private  String time;
 
     @NotBlank
-    private String assignedTo;
+    private String assignedUser;
 
-    public Schedule(String time, String assignedTo) {
+    public Schedule(String time, String assignedUser) {
         ObjectId id;
         this.time = time;
-        this.assignedTo = assignedTo;
+        this.assignedUser = assignedUser;
     }
 
     public String getId() {
@@ -34,7 +34,7 @@ public class Schedule {
     public String getTime() {
         return time;
     }
-    public String getAssignedTo() {
-        return assignedTo; 
+    public String getAssignedUser() {
+        return assignedUser; 
     }
 }

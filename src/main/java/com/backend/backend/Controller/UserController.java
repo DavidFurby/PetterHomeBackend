@@ -1,6 +1,7 @@
 package com.backend.backend.Controller;
 
 import com.backend.backend.Model.ReceivedPet;
+import com.backend.backend.Model.Schedule;
 import com.backend.backend.Model.Animal;
 import com.backend.backend.Model.Invite;
 import com.backend.backend.Model.InviteObject;
@@ -11,6 +12,7 @@ import com.backend.backend.Payload.request.ChangePasswordRequest;
 import com.backend.backend.Payload.request.InviteRequest;
 import com.backend.backend.Payload.request.NeedRequest;
 import com.backend.backend.Payload.request.PetRequest;
+import com.backend.backend.Payload.request.ScheduleRequest;
 import com.backend.backend.Payload.response.MessageResponse;
 
 import com.backend.backend.Repository.UserRepository;
@@ -47,8 +49,8 @@ public class UserController {
 
     @GetMapping("/getCurrentUser")
     @PreAuthorize("hasRole('USER')")
-    public Optional<User> getCurrentUser(@RequestParam String id) {
-        return userRepository.findById(id);
+    public Optional<User> getCurrentUser(@RequestParam String userId) {
+        return userRepository.findById(userId);
     }
 
     @PostMapping("/addPetToUser")
@@ -94,6 +96,56 @@ public class UserController {
         setPet.ifPresent(p -> p.addNeed(need));
         user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Pets need added successfully!"));
+    }
+
+    @PostMapping("/addScheduleToNeed")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<MessageResponse> addScheduleToNeed(@Valid @RequestBody ScheduleRequest scheduleRequest,
+            @RequestParam Map<String, String> id) {
+        if (scheduleRequest.getTime() == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: time of day must be selected"));
+        }
+        if (scheduleRequest.getAssignedUser() == null) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: A user must be assigned to the schedule"));
+        }
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        String needId = id.get("needId");
+        Optional<User> user = userRepository.findById(userId);
+
+        List<Pet> pets = user.get().pets;
+
+        List<Pet> filterPets = pets.stream().filter(p -> p.getId().equals(petId)).collect(Collectors.toList());
+        Optional<Pet> setPet = filterPets.stream().findFirst();
+        Pet realPet = setPet.get();
+        List<Need> needs = realPet.getNeeds();
+        List<Need> filterNeeds = new ArrayList<>();
+        for (Need need : needs) {
+            if (need.getId().equals(needId)) {
+                filterNeeds.add(need);
+            }
+        }
+        Optional<Need> correctNeed = filterNeeds.stream().findFirst();
+        Need realNeed = correctNeed.get();
+        List<Schedule> schedules = realNeed.getSchedules();
+        Schedule schedule = new Schedule(scheduleRequest.getTime(), scheduleRequest.getAssignedUser());
+        schedules.add(schedule);
+        realNeed.setSchedules(schedules);
+        for (Need tempNeed : needs) {
+            if (tempNeed.getId().equals(realNeed.getId())) {
+                tempNeed.equals(realNeed);
+            }
+        }
+        realPet.setNeeds(needs);
+        for (Pet tempPet : pets) {
+            if (tempPet.getId().equals(realPet.getId())) {
+                tempPet = realPet;
+            }
+        }
+        user.ifPresent(u -> u.setPets(pets));
+        user.ifPresent(u -> userRepository.save(u));
+        return ResponseEntity.ok(new MessageResponse("Schedule added to pets need"));
     }
 
     @GetMapping("/getPetById")
@@ -162,7 +214,7 @@ public class UserController {
             if (need.getId().equals(needId)) {
                 need.setType(needRequest.getType());
                 need.setNotified(needRequest.getNotified());
-                need.setSchedule(needRequest.getSchedule());
+                need.setSchedules(needRequest.getSchedule());
                 updatedNeeds.add(need);
             }
         }
@@ -226,12 +278,13 @@ public class UserController {
         Optional<User> receiver = userRepository.findByUsername(inviteRequest.getUsername());
         User realReceiver = receiver.get();
         Invite invite = new Invite(userId, petId);
-        
+
         List<Invite> receiverInvites = realReceiver.getInvites();
         List<ReceivedPet> receiverReceivedPets = realReceiver.getReceivedPets();
         for (Invite tempInvite : receiverInvites) {
             if (tempInvite.getPetId().equals(invite.getPetId())) {
-                return ResponseEntity.ok(new MessageResponse("Invite for this pet has already been sent to this user!"));
+                return ResponseEntity
+                        .ok(new MessageResponse("Invite for this pet has already been sent to this user!"));
             }
         }
         for (ReceivedPet receivedPet : receiverReceivedPets) {

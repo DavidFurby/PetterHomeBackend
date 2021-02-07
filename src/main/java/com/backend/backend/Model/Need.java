@@ -24,13 +24,13 @@ public class Need {
 
     private Boolean notified;
 
-    private List<Schedule> schedule = new ArrayList<>();
+    private List<Schedule> schedules = new ArrayList<>();
 
-    public Need(String type, Boolean notified, List<Schedule> schedule) {
+    public Need(String type, Boolean notified, List<Schedule> schedules) {
         ObjectId id;
         this.type = type;
         this.notified = notified;
-        this.schedule = schedule;
+        this.schedules = schedules;
     }
 
     public String getId() {
@@ -53,11 +53,12 @@ public class Need {
         this.notified = notified;
     }
 
-    public List<Schedule> getSchedule() {
-        return schedule;
+    public List<Schedule> getSchedules() {
+        return schedules;
     }
 
-    public void setSchedule(List<Schedule> schedule) {
-        this.schedule = schedule;
+    public void setSchedules(List<Schedule> schedules) {
+        this.schedules = schedules;
     }
+
 }
