@@ -5,8 +5,10 @@ import com.backend.backend.Model.Schedule;
 import com.backend.backend.Model.Animal;
 import com.backend.backend.Model.Invite;
 import com.backend.backend.Model.InviteObject;
+import com.backend.backend.Model.MessageObject;
 import com.backend.backend.Model.Need;
 import com.backend.backend.Model.Pet;
+import com.backend.backend.Model.PetMessageObject;
 import com.backend.backend.Model.User;
 import com.backend.backend.Payload.request.ChangePasswordRequest;
 import com.backend.backend.Payload.request.InviteRequest;
@@ -53,23 +55,28 @@ public class UserController {
         return userRepository.findById(userId);
     }
 
+    @GetMapping("/getAllPets")
+    @PreAuthorize("hasRole('USER')")
+    public List<Pet> getAllPets(@RequestParam String userId) {
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<Pet> pets = user.getPets();
+        return pets;
+    }
+
     @PostMapping("/addPetToUser")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> addPetToUser(@Valid @RequestBody PetRequest petRequest,
-            @RequestParam String userId) {
+    public PetMessageObject addPetToUser(@Valid @RequestBody PetRequest petRequest, @RequestParam String userId) {
 
         Optional<User> user = userRepository.findById(userId);
-        if (petRequest.getPetName() == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: A petname must be selected"));
-        }
-        if (petRequest.getAnimal() == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: An animal must be selected"));
-        }
+
         Pet pet = new Pet(petRequest.getPetName(), petRequest.getPetAge(), petRequest.getGender(),
                 petRequest.getAnimal(), petRequest.getHeight(), petRequest.getWeight());
         user.ifPresent(u -> u.addPet(pet));
         user.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("Pet added successfully!"));
+        String message = "pet was added successfully";
+        PetMessageObject petMessageObject = new PetMessageObject(pet, message);
+        return petMessageObject;
     }
 
     @PostMapping("/addNeedToPet")
@@ -243,7 +250,7 @@ public class UserController {
 
     @DeleteMapping("/deletePetFromUser")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> deletePetFromUser(@Valid @RequestParam Map<String, String> id) {
+    public MessageObject deletePetFromUser(@Valid @RequestParam Map<String, String> id) {
         String userId = id.get("userId");
         String petId = id.get("petId");
         Optional<User> opUser = userRepository.findById(userId);
@@ -266,7 +273,9 @@ public class UserController {
 
         opUser.ifPresent(u -> u.setPets(filterPets));
         opUser.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("Pet has been deleted! :( "));
+        String message = "pet has been deleted successfully";
+        MessageObject object = new MessageObject(petId, message);
+        return object;
     }
 
     @PostMapping("/sendInvite")
