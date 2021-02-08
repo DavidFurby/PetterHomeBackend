@@ -7,6 +7,8 @@ import com.backend.backend.Model.Invite;
 import com.backend.backend.Model.InviteObject;
 import com.backend.backend.Model.MessageObject;
 import com.backend.backend.Model.Need;
+import com.backend.backend.Model.Notification;
+import com.backend.backend.Model.NotificationObject;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.PetMessageObject;
 import com.backend.backend.Model.User;
@@ -16,7 +18,6 @@ import com.backend.backend.Payload.request.NeedRequest;
 import com.backend.backend.Payload.request.PetRequest;
 import com.backend.backend.Payload.request.ScheduleRequest;
 import com.backend.backend.Payload.response.MessageResponse;
-
 import com.backend.backend.Repository.UserRepository;
 import com.backend.backend.Security.services.AnimalService;
 import com.backend.backend.Security.services.UserService;
@@ -465,9 +466,58 @@ public class UserController {
     }
 
     @PostMapping("/createNotification")
-    public ResponseEntity<MessageResponse> createNotifications(@RequestParam Map<String, String> id) {
-
+    public ResponseEntity<MessageResponse> createNotification(
+            @Valid @RequestBody @RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        String needId = id.get("needId");
+        String scheduleId = id.get("scheduleId");
+        Notification notification = new Notification(petId, needId, scheduleId);
+        Optional<User> opUser = userRepository.findById(userId);
+        opUser.ifPresent(u -> u.addNotification(notification));
+        opUser.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Notification has been made"));
+
+    }
+
+    @GetMapping("/getNotifications")
+    public ResponseEntity<MessageResponse> getNotifications(@Valid @RequestParam Map<String, String> id) {
+        List<NotificationObject> notificationObjects = new ArrayList<>();
+
+        String userId = id.get("userId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<Notification> notifications = user.getNotifications();
+        for (Notification notification : notifications) {
+            String petId = notification.getPetId();
+            List<Pet> pets = user.getPets();
+            List<ReceivedPet> receivedPets = user.getReceivedPets();
+            List<Pet> filterPets = new ArrayList<>();
+            List<ReceivedPet> filterReceivedPets = new ArrayList<>();
+            for (Pet pet : pets) {
+                NotificationObject notificationObject;
+                if (pet.getId().equals(petId)) {
+                    filterPets.add(pet);
+                }
+            }
+            for (ReceivedPet receivedPet : receivedPets) {
+                if (receivedPet.getId().equals(petId)) {
+                    filterReceivedPets.add(receivedPet);
+                }
+            }
+            Optional<Pet> availablePet = filterPets.stream().findFirst();
+            Optional<Pet> petOp;
+            Optional<ReceivedPet> availableReceivedPet = filterReceivedPets.stream().findFirst();
+            Optional<ReceivedPet> receivedPetOp;
+            if (!availablePet.equals(null)) {
+                petOp = availablePet;
+            }
+            if (!availableReceivedPet.equals(null)) {
+                receivedPetOp = availableReceivedPet;
+            }
+        }
+        return ResponseEntity.ok(new MessageResponse("Notification has been made"));
+
     }
 
     @GetMapping("/getAllAnimals")

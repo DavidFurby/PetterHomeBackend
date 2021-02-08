@@ -26,14 +26,14 @@ public class Notification {
     @NotBlank
     public String scheduleId;
     @NotBlank
-    public String receiverId;
+    public String assignedUserId;
 
-    public Notification(@NotBlank String petId, String needId, String scheduleId, String receiverId) {
+    public Notification(@NotBlank String petId, String needId, String scheduleId) {
         ObjectId id;
         this.petId = petId;
         this.needId = needId;
         this.scheduleId = scheduleId;
-        this.receiverId = receiverId;
+        this.assignedUserId = assignedUserId;
     }
 
     public String getId() {
@@ -48,7 +48,7 @@ public class Notification {
         return scheduleId;
     }
 
-    public String getReceiverId() {
-        return receiverId;
+    public String getAssignedUserId() {
+        return assignedUserId;
     }
 }
