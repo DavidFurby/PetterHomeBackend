@@ -297,6 +297,7 @@ public class UserController {
                         .ok(new MessageResponse("Invite for this pet has already been sent to this user!"));
             }
         }
+
         for (ReceivedPet receivedPet : receiverReceivedPets) {
             if (receivedPet.getPetId().equals(invite.getPetId())) {
                 return ResponseEntity.ok(new MessageResponse("This pet has already been received by that user!"));
@@ -353,14 +354,14 @@ public class UserController {
     @GetMapping("/getReceivedPetById")
     @PreAuthorize("hasRole('USER')")
     public Object getAcceptedPetById(@RequestParam Map<String, String> id) {
-        String receivedPetId = id.get("receivedPetId");
+        String receivedPetId = id.get("petId");
         String userId = id.get("userId");
         Optional<User> opUser = userRepository.findById(userId);
         User user = opUser.get();
         List<ReceivedPet> receivedPets = user.getReceivedPets();
         List<ReceivedPet> filterPets = new ArrayList<>();
         for (ReceivedPet pet : receivedPets) {
-            if (pet.getId().equals(receivedPetId)) {
+            if (pet.getPetId().equals(receivedPetId)) {
                 filterPets.add(pet);
             }
         }
@@ -388,26 +389,60 @@ public class UserController {
         Optional<User> opUser = userRepository.findById(userId);
         User user = opUser.get();
         List<ReceivedPet> receivedPets = user.getReceivedPets();
+        List<ReceivedPet> filterReceivedPets = new ArrayList<>();
         List<InviteObject> receivedPetObjects = new ArrayList<>();
         for (ReceivedPet receivedPet : receivedPets) {
             String senderId = receivedPet.getUserId();
             Optional<User> opSender = userRepository.findById(senderId);
             User realSender = opSender.get();
             List<Pet> senderPets = realSender.getPets();
-            InviteObject inviteObject = null;
+            InviteObject receivedPetObject = null;
             for (Pet pet : senderPets) {
                 if (pet.getId().equals(receivedPet.getPetId())) {
-                    inviteObject = new InviteObject(receivedPet.getId(), realSender, pet);
-                    receivedPetObjects.add(inviteObject);
+                    receivedPetObject = new InviteObject(receivedPet.getId(), realSender, pet);
+                    receivedPetObjects.add(receivedPetObject);
+                }
+                if (receivedPetObject == null) {
+                    return receivedPets.stream().filter(i -> !i.getId().equals(receivedPet.getId()))
+                            .collect(Collectors.toList());
                 }
             }
-            if (inviteObject.equals(null)) {
-                receivedPets.stream().filter(i -> !i.getId().equals(receivedPet.getId())).collect(Collectors.toList());
-            }
+
         }
-        opUser.ifPresent(u -> u.setReceivedPets(receivedPets));
+        opUser.ifPresent(u -> u.setReceivedPets(filterReceivedPets));
         opUser.ifPresent(u -> userRepository.save(u));
         return receivedPetObjects;
+    }
+
+    @DeleteMapping("/deleteReceivedPetFromUser")
+    @PreAuthorize("hasRole('USER')")
+    public MessageObject deleteReceivedPetFromUser(@Valid @RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User realUser = opUser.get();
+        List<ReceivedPet> pets = realUser.getReceivedPets();
+        List<ReceivedPet> filterPets = pets.stream().filter(p -> !p.getPetId().equals(petId))
+                .collect(Collectors.toList());
+        /*
+         * List<User> allUsers = userRepository.findAll(); for (User listUser :
+         * allUsers) { List<Invite> listInvites = listUser.getInvites(); List<Invite>
+         * filterInvites = new ArrayList<>(); List<ReceivedPet> listReceivedPets =
+         * listUser.getReceivedPets(); List<ReceivedPet> filterReceivedPets = new
+         * ArrayList<>(); for (Invite listInvite : listInvites) { if
+         * (!listInvite.getPetId().equals(petId)) { filterInvites.add(listInvite); } }
+         * for (ReceivedPet listReceivedPet : listReceivedPets) { if
+         * (!listReceivedPet.getPetId().equals(petId)) {
+         * filterReceivedPets.add(listReceivedPet); } }
+         * listUser.setInvites(filterInvites);
+         * listUser.setReceivedPets(filterReceivedPets); }
+         */
+
+        opUser.ifPresent(u -> u.setReceivedPets(filterPets));
+        opUser.ifPresent(u -> userRepository.save(u));
+        String message = "pet has been deleted successfully";
+        MessageObject object = new MessageObject(petId, message);
+        return object;
     }
 
     @GetMapping("getAllInvites")
@@ -427,6 +462,7 @@ public class UserController {
                 if (pet.getId().equals(invite.getPetId())) {
                     inviteObject = new InviteObject(invite.getId(), realSender, pet);
                     objectList.add(inviteObject);
+
                 }
             }
             if (inviteObject.equals(null)) {
@@ -480,8 +516,8 @@ public class UserController {
 
     }
 
-    @GetMapping("/getNotifications")
-    public ResponseEntity<MessageResponse> getNotifications(@Valid @RequestParam Map<String, String> id) {
+    @GetMapping("/getPetNotifications")
+    public List<NotificationObject> getPetNotifications(@Valid @RequestParam Map<String, String> id) {
         List<NotificationObject> notificationObjects = new ArrayList<>();
 
         String userId = id.get("userId");
@@ -489,35 +525,46 @@ public class UserController {
         User user = opUser.get();
         List<Notification> notifications = user.getNotifications();
         for (Notification notification : notifications) {
+            String notificationId = notification.getId();
             String petId = notification.getPetId();
+            String needId = notification.getNeedId();
+            String scheduleId = notification.getScheduleId();
             List<Pet> pets = user.getPets();
-            List<ReceivedPet> receivedPets = user.getReceivedPets();
             List<Pet> filterPets = new ArrayList<>();
-            List<ReceivedPet> filterReceivedPets = new ArrayList<>();
+            NotificationObject notificationObject;
+            List<Need> filterNeeds = new ArrayList<>();
+            List<Schedule> filterSchedule = new ArrayList<>();
             for (Pet pet : pets) {
-                NotificationObject notificationObject;
                 if (pet.getId().equals(petId)) {
                     filterPets.add(pet);
                 }
-            }
-            for (ReceivedPet receivedPet : receivedPets) {
-                if (receivedPet.getId().equals(petId)) {
-                    filterReceivedPets.add(receivedPet);
-                }
-            }
-            Optional<Pet> availablePet = filterPets.stream().findFirst();
-            Optional<Pet> petOp;
-            Optional<ReceivedPet> availableReceivedPet = filterReceivedPets.stream().findFirst();
-            Optional<ReceivedPet> receivedPetOp;
-            if (!availablePet.equals(null)) {
-                petOp = availablePet;
-            }
-            if (!availableReceivedPet.equals(null)) {
-                receivedPetOp = availableReceivedPet;
-            }
-        }
-        return ResponseEntity.ok(new MessageResponse("Notification has been made"));
+                Optional<Pet> opPet = filterPets.stream().findFirst();
+                Pet realPet = opPet.get();
+                List<Need> petNeeds = realPet.getNeeds();
 
+                for (Need petNeed : petNeeds) {
+                    if (petNeed.getId().equals(needId)) {
+                        filterNeeds.add(petNeed);
+                        List<Schedule> schedules = petNeed.getSchedules();
+                        for (Schedule petSchedule : schedules) {
+                            if (petSchedule.getId().equals(scheduleId)) {
+                                filterSchedule.add(petSchedule);
+                            }
+                        }
+                    }
+                }
+
+            }
+            Optional<Pet> opPet = filterPets.stream().findFirst();
+            Pet realPet = opPet.get();
+            Optional<Need> opNeed = filterNeeds.stream().findFirst();
+            Need realNeed = opNeed.get();
+            Optional<Schedule> opSchedule = filterSchedule.stream().findFirst();
+            Schedule realSchedule = opSchedule.get();
+            notificationObject = new NotificationObject(notificationId, realPet, realNeed, realSchedule);
+            notificationObjects.add(notificationObject);
+        }
+        return notificationObjects;
     }
 
     @GetMapping("/getAllAnimals")

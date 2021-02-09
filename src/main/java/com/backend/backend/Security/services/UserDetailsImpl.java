@@ -130,6 +130,6 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public List<ReceivedPet> getReceivedPets() {
-        return receivedPets;
+        return receivedPets; 
     }
 }

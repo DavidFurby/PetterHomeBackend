@@ -51,4 +51,8 @@ public class Notification {
     public String getAssignedUserId() {
         return assignedUserId;
     }
+
+    public String getNeedId() {
+        return needId;
+    }
 }
