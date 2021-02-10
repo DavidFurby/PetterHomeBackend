@@ -56,67 +56,10 @@ public class UserController {
         return userRepository.findById(userId);
     }
 
-    @GetMapping("/getAllPets")
-    @PreAuthorize("hasRole('USER')")
-    public List<Pet> getAllPets(@RequestParam String userId) {
-        Optional<User> opUser = userRepository.findById(userId);
-        User user = opUser.get();
-        List<Pet> pets = user.getPets();
-        return pets;
-    }
-
-    @PostMapping("/addPetToUser")
-    @PreAuthorize("hasRole('USER')")
-    public PetMessageObject addPetToUser(@Valid @RequestBody PetRequest petRequest, @RequestParam String userId) {
-
-        Optional<User> user = userRepository.findById(userId);
-
-        Pet pet = new Pet(petRequest.getPetName(), petRequest.getPetAge(), petRequest.getGender(),
-                petRequest.getAnimal(), petRequest.getHeight(), petRequest.getWeight());
-        user.ifPresent(u -> u.addPet(pet));
-        user.ifPresent(u -> userRepository.save(u));
-        String message = "pet was added successfully";
-        PetMessageObject petMessageObject = new PetMessageObject(pet, message);
-        return petMessageObject;
-    }
-
-    @PostMapping("/addNeedToPet")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> addNeedToPet(@Valid @RequestBody NeedRequest needRequest,
-            @RequestParam Map<String, String> id) {
-        if (needRequest.getType() == null) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Error: A name for the pets need must be selected"));
-        }
-        if (needRequest.getSchedule() == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: No schedule has been made"));
-        }
-        String userId = id.get("userId");
-        String petId = id.get("petId");
-        Optional<User> user = userRepository.findById(userId);
-
-        List<Pet> pets = user.get().pets;
-
-        List<Pet> filterPets = pets.stream().filter(p -> p.getId().equals(petId)).collect(Collectors.toList());
-        Optional<Pet> setPet = filterPets.stream().findFirst();
-
-        Need need = new Need(needRequest.getType(), needRequest.getNotified(), needRequest.getSchedule());
-        setPet.ifPresent(p -> p.addNeed(need));
-        user.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("Pets need added successfully!"));
-    }
-
     @PostMapping("/addScheduleToNeed")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<MessageResponse> addScheduleToNeed(@Valid @RequestBody ScheduleRequest scheduleRequest,
             @RequestParam Map<String, String> id) {
-        if (scheduleRequest.getTime() == null) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: time of day must be selected"));
-        }
-        if (scheduleRequest.getAssignedUser() == null) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Error: A user must be assigned to the schedule"));
-        }
         String userId = id.get("userId");
         String petId = id.get("petId");
         String needId = id.get("needId");
@@ -156,52 +99,9 @@ public class UserController {
         return ResponseEntity.ok(new MessageResponse("Schedule added to pets need"));
     }
 
-    @GetMapping("/getPetById")
+    @PutMapping("/updatePetSchedule")
     @PreAuthorize("hasRole('USER')")
-    public Pet getPetById(@Valid @RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
-        String petId = id.get("petId");
-        Optional<User> user = userRepository.findById(userId);
-        List<Pet> pets = user.get().pets;
-
-        for (Pet pet : pets) {
-            if (pet.getId().equals(petId)) {
-                return pet;
-            }
-        }
-        return null;
-    }
-
-    @PutMapping("/updateUserPet")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> updateUserPet(@Valid @RequestBody PetRequest petRequest,
-            @RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
-        String petId = id.get("petId");
-        Optional<User> user = userRepository.findById(userId);
-        List<Pet> pets = user.get().pets;
-        List<Pet> updatedPets = new ArrayList<>();
-        for (Pet pet : pets) {
-            if (pet.getId().equals(petId)) {
-                pet.setPetName(petRequest.getPetName());
-                pet.setPetAge(petRequest.getPetAge());
-                pet.setGender(petRequest.getGender());
-                pet.setWeight(petRequest.getWeight());
-                pet.setHeight(petRequest.getHeight());
-                updatedPets.add(pet);
-            } else {
-                updatedPets.add(pet);
-            }
-        }
-
-        user.ifPresent(u -> u.setPets(updatedPets));
-        user.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("The pets information has been updated successfully!"));
-    }
-
-    @PutMapping("/updateUserSchedule")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> updateUserSchedule(@Valid @RequestBody NeedRequest needRequest,
+    public ResponseEntity<MessageResponse> updatePetSchedule(@Valid @RequestBody NeedRequest needRequest,
             @RequestParam Map<String, String> id) {
         String userId = id.get("userId");
         String petId = id.get("petId");
@@ -247,36 +147,6 @@ public class UserController {
         user.ifPresent(u -> u.setPassword(encoder.encode(changePasswordRequest.getNewPassword())));
         user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Password has been changed successfully!"));
-    }
-
-    @DeleteMapping("/deletePetFromUser")
-    @PreAuthorize("hasRole('USER')")
-    public MessageObject deletePetFromUser(@Valid @RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
-        String petId = id.get("petId");
-        Optional<User> opUser = userRepository.findById(userId);
-        User realUser = opUser.get();
-        List<Pet> pets = realUser.getPets();
-        List<Pet> filterPets = pets.stream().filter(p -> !p.getId().equals(petId)).collect(Collectors.toList());
-        /*
-         * List<User> allUsers = userRepository.findAll(); for (User listUser :
-         * allUsers) { List<Invite> listInvites = listUser.getInvites(); List<Invite>
-         * filterInvites = new ArrayList<>(); List<ReceivedPet> listReceivedPets =
-         * listUser.getReceivedPets(); List<ReceivedPet> filterReceivedPets = new
-         * ArrayList<>(); for (Invite listInvite : listInvites) { if
-         * (!listInvite.getPetId().equals(petId)) { filterInvites.add(listInvite); } }
-         * for (ReceivedPet listReceivedPet : listReceivedPets) { if
-         * (!listReceivedPet.getPetId().equals(petId)) {
-         * filterReceivedPets.add(listReceivedPet); } }
-         * listUser.setInvites(filterInvites);
-         * listUser.setReceivedPets(filterReceivedPets); }
-         */
-
-        opUser.ifPresent(u -> u.setPets(filterPets));
-        opUser.ifPresent(u -> userRepository.save(u));
-        String message = "pet has been deleted successfully";
-        MessageObject object = new MessageObject(petId, message);
-        return object;
     }
 
     @PostMapping("/sendInvite")
@@ -396,15 +266,12 @@ public class UserController {
             Optional<User> opSender = userRepository.findById(senderId);
             User realSender = opSender.get();
             List<Pet> senderPets = realSender.getPets();
-            InviteObject receivedPetObject = null;
+            InviteObject receivedPetObject;
             for (Pet pet : senderPets) {
                 if (pet.getId().equals(receivedPet.getPetId())) {
                     receivedPetObject = new InviteObject(receivedPet.getId(), realSender, pet);
                     receivedPetObjects.add(receivedPetObject);
-                }
-                if (receivedPetObject == null) {
-                    return receivedPets.stream().filter(i -> !i.getId().equals(receivedPet.getId()))
-                            .collect(Collectors.toList());
+                    filterReceivedPets.add(receivedPet);
                 }
             }
 
