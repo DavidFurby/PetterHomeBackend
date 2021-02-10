@@ -12,6 +12,7 @@ import com.backend.backend.Model.MessageObject;
 import com.backend.backend.Model.Need;
 import com.backend.backend.Model.Pet;
 import com.backend.backend.Model.PetMessageObject;
+import com.backend.backend.Model.Schedule;
 import com.backend.backend.Model.User;
 import com.backend.backend.Payload.request.NeedRequest;
 import com.backend.backend.Payload.request.PetRequest;
@@ -89,9 +90,9 @@ public class PetController {
         return petMessageObject;
     }
 
-    @DeleteMapping("/deleteNeedFromPet")
+    @DeleteMapping("/deleteNeed")
     @PreAuthorize("hasRole('USER')")
-    public MessageObject deleteNeedFromPet(@Valid @RequestParam Map<String, String> id) {
+    public MessageObject deleteNeed(@Valid @RequestParam Map<String, String> id) {
         String userId = id.get("userId");
         String petId = id.get("petId");
         String needId = id.get("needId");
@@ -103,12 +104,42 @@ public class PetController {
         Pet realPet = opPet.get();
         List<Need> needs = realPet.getNeeds();
         List<Need> filterNeeds = needs.stream().filter(n -> !n.getId().equals(needId)).collect(Collectors.toList());
-        
+
         opPet.ifPresent(p -> p.setNeeds(filterNeeds));
         opUser.ifPresent(u -> u.setPets(filterPets));
         opUser.ifPresent(u -> userRepository.save(u));
         String message = "need has been deleted successfully";
         MessageObject object = new MessageObject(needId, message);
+        return object;
+    }
+
+    @DeleteMapping("/deleteSchedule")
+    @PreAuthorize("hasRole('USER')")
+    public MessageObject deleteSchedule(@Valid @RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        String needId = id.get("needId");
+        String scheduleId = id.get("scheduleId");
+
+        Optional<User> opUser = userRepository.findById(userId);
+        User realUser = opUser.get();
+        List<Pet> pets = realUser.getPets();
+        List<Pet> filterPets = pets.stream().filter(p -> p.getId().equals(petId)).collect(Collectors.toList());
+        Optional<Pet> opPet = filterPets.stream().findFirst();
+        Pet realPet = opPet.get();
+        List<Need> needs = realPet.getNeeds();
+        List<Need> filterNeeds = needs.stream().filter(n -> n.getId().equals(needId)).collect(Collectors.toList());
+        Optional<Need> opNeed = filterNeeds.stream().findFirst();
+        Need realNeed = opNeed.get();
+        List<Schedule> schedules = realNeed.getSchedules();
+        List<Schedule> filterSchedule = schedules.stream().filter(s -> !s.getId().equals(scheduleId))
+                .collect(Collectors.toList());
+        opNeed.ifPresent(n -> n.setSchedules(filterSchedule));
+        opPet.ifPresent(p -> p.setNeeds(filterNeeds));
+        opUser.ifPresent(u -> u.setPets(filterPets));
+        opUser.ifPresent(u -> userRepository.save(u));
+        String message = "schedule has been deleted successfully";
+        MessageObject object = new MessageObject(scheduleId, message);
         return object;
     }
 
