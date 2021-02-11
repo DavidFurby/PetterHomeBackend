@@ -12,13 +12,15 @@ public class NotificationObject {
     public Need need;
     @NotBlank
     public Schedule schedule;
+    @NotBlank
+    public Boolean check;
 
-    public NotificationObject(@NotBlank String notificationId, Pet pet, Need need,
-            Schedule schedule) {
+    public NotificationObject(@NotBlank String notificationId, Pet pet, Need need, Schedule schedule, Boolean check) {
         this.notificationId = notificationId;
         this.pet = pet;
         this.need = need;
         this.schedule = schedule;
+        this.check = check;
     }
 
     public String getNotificationId() {
@@ -35,5 +37,8 @@ public class NotificationObject {
 
     public Schedule getSchedule() {
         return schedule;
+    }
+    public Boolean getCheck() {
+        return check; 
     }
 }

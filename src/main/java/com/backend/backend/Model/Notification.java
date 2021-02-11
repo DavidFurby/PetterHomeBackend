@@ -26,14 +26,20 @@ public class Notification {
     @NotBlank
     public String scheduleId;
     @NotBlank
+    public String userId;
+    @NotBlank
     public String assignedUserId;
+    @NotBlank
+    Boolean checked;
 
-    public Notification(@NotBlank String petId, String needId, String scheduleId) {
+    public Notification(@NotBlank String petId, String needId, String scheduleId, String userId, String assignedUserId, Boolean checked) {
         ObjectId id;
         this.petId = petId;
         this.needId = needId;
         this.scheduleId = scheduleId;
+        this.userId = userId;
         this.assignedUserId = assignedUserId;
+        this.checked = checked;
     }
 
     public String getId() {
@@ -47,12 +53,22 @@ public class Notification {
     public String getScheduleId() {
         return scheduleId;
     }
-
+    public String getUserId() {
+        return userId; 
+    }
     public String getAssignedUserId() {
         return assignedUserId;
     }
 
     public String getNeedId() {
         return needId;
+    }
+
+    public Boolean getChecked() {
+        return checked;
+    }
+
+    public void setChecked(Boolean checked) {
+        this.checked = checked;
     }
 }

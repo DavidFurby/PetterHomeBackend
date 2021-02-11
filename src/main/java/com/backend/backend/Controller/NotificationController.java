@@ -19,8 +19,10 @@ import com.backend.backend.Repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,13 +54,24 @@ public class NotificationController {
                             if (schedules != null) {
                                 for (Schedule schedule : schedules) {
                                     String scheduleId = schedule.getId();
-                                    String time = schedule.getTime();
+                                    String assignedUsername = schedule.getAssignedUser();
+                                    Optional<User> opAssignedUser = userRepository.findByUsername(assignedUsername);
+                                    User assignedUser = opAssignedUser.get();
+                                    String assignedUserId = assignedUser.getId();
+                                    Optional<User> test = userRepository.findById(assignedUserId);
+                                    String time = "21:56";
                                     if (time.equals(dateFormat.format(new Date()))) {
-                                        Notification notification = new Notification(petId, needId, scheduleId);
+                                        Notification notification = new Notification(petId, needId, scheduleId, userId,
+                                                assignedUserId, false);
                                         Optional<User> opUser = userRepository.findById(userId);
-                                        System.out.println(notification);
+                                        System.out.println(!userId.equals(assignedUserId));
+                                        if (!userId.equals(assignedUserId)) {
+                                            test.ifPresent(u -> u.addNotification(notification));
+                                            test.ifPresent(u -> userRepository.save(u));
+                                        }
                                         opUser.ifPresent(u -> u.addNotification(notification));
                                         opUser.ifPresent(u -> userRepository.save(u));
+
                                     }
                                 }
                             }
@@ -71,6 +84,7 @@ public class NotificationController {
     }
 
     @GetMapping("/getPetNotifications")
+    @PreAuthorize("hasRole('USER')")
     public List<NotificationObject> getPetNotifications(@Valid @RequestParam Map<String, String> id) {
         List<NotificationObject> notificationObjects = new ArrayList<>();
 
@@ -84,6 +98,7 @@ public class NotificationController {
             String petId = notification.getPetId();
             String needId = notification.getNeedId();
             String scheduleId = notification.getScheduleId();
+            Boolean check = notification.getChecked();
             List<Pet> pets = user.getPets();
             List<Pet> filterPets = new ArrayList<>();
             NotificationObject notificationObject;
@@ -94,16 +109,18 @@ public class NotificationController {
                     filterPets.add(pet);
                 }
                 Optional<Pet> opPet = filterPets.stream().findFirst();
-                Pet realPet = opPet.get();
-                List<Need> petNeeds = realPet.getNeeds();
+                if (opPet.isPresent()) {
+                    Pet realPet = opPet.get();
+                    List<Need> petNeeds = realPet.getNeeds();
 
-                for (Need petNeed : petNeeds) {
-                    if (petNeed.getId().equals(needId)) {
-                        filterNeeds.add(petNeed);
-                        List<Schedule> schedules = petNeed.getSchedules();
-                        for (Schedule petSchedule : schedules) {
-                            if (petSchedule.getId().equals(scheduleId)) {
-                                filterSchedule.add(petSchedule);
+                    for (Need petNeed : petNeeds) {
+                        if (petNeed.getId().equals(needId)) {
+                            filterNeeds.add(petNeed);
+                            List<Schedule> schedules = petNeed.getSchedules();
+                            for (Schedule petSchedule : schedules) {
+                                if (petSchedule.getId().equals(scheduleId)) {
+                                    filterSchedule.add(petSchedule);
+                                }
                             }
                         }
                     }
@@ -117,7 +134,7 @@ public class NotificationController {
                 Pet realPet = opPet.get();
                 Need realNeed = opNeed.get();
                 Schedule realSchedule = opSchedule.get();
-                notificationObject = new NotificationObject(notificationId, realPet, realNeed, realSchedule);
+                notificationObject = new NotificationObject(notificationId, realPet, realNeed, realSchedule, check);
                 notificationObjects.add(notificationObject);
                 filterNotification.add(notification);
             }
@@ -127,4 +144,25 @@ public class NotificationController {
         return notificationObjects;
     }
 
+    @PutMapping("/checkNotification")
+    @PreAuthorize("hasRole('USER')")
+    public void checkNotification(@Valid @RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String notificationId = id.get("notificationId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<Notification> notifications = user.getNotifications();
+        List<Notification> newNotification = new ArrayList<>();
+        for (Notification notification : notifications) {
+            if (notification.getId().equals(notificationId)) {
+                notification.setChecked(true);
+                newNotification.add(notification);
+            } else {
+                newNotification.add(notification);
+
+            }
+        }
+        opUser.ifPresent(u -> u.setNotifications(newNotification));
+        opUser.ifPresent(u -> userRepository.save(u));
+    }
 }
