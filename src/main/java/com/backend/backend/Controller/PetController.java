@@ -161,13 +161,14 @@ public class PetController {
 
     @PutMapping("/updateUserPet")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> updateUserPet(@Valid @RequestBody PetRequest petRequest,
+    public PetMessageObject updateUserPet(@Valid @RequestBody PetRequest petRequest,
             @RequestParam Map<String, String> id) {
         String userId = id.get("userId");
         String petId = id.get("petId");
         Optional<User> user = userRepository.findById(userId);
         List<Pet> pets = user.get().pets;
         List<Pet> updatedPets = new ArrayList<>();
+        PetMessageObject petMessage = null; 
         for (Pet pet : pets) {
             if (pet.getId().equals(petId)) {
                 pet.setPetName(petRequest.getPetName());
@@ -176,6 +177,8 @@ public class PetController {
                 pet.setWeight(petRequest.getWeight());
                 pet.setHeight(petRequest.getHeight());
                 updatedPets.add(pet);
+                String msg = "The pets information has been updated successfully!";
+                 petMessage = new PetMessageObject(pet, msg); 
             } else {
                 updatedPets.add(pet);
             }
@@ -183,7 +186,8 @@ public class PetController {
 
         user.ifPresent(u -> u.setPets(updatedPets));
         user.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("The pets information has been updated successfully!"));
+
+        return petMessage;
     }
 
     @DeleteMapping("/deletePetFromUser")
