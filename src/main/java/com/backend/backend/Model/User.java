@@ -96,8 +96,8 @@ public class User {
         return notifications;
     }
 
-    public void setNotifications(ArrayList<Notification> notification) {
-        this.notifications = notification;
+    public void setNotifications(List<Notification> filterNotification) {
+        this.notifications = filterNotification;
     }
 
     public List<Invite> getInvites() {
