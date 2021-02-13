@@ -34,7 +34,7 @@ public class User {
     private Set<Role> roles = new HashSet<>();
 
     public List<Pet> pets;
-    public List<Notification> notifications;
+    public List<String> notifications;
     public List<Invite> invites;
     public List<ReceivedPet> receivedPets; 
 
@@ -92,11 +92,11 @@ public class User {
         pets.add(newPet);
     }
 
-    public List<Notification> getNotifications() {
+    public List<String> getNotifications() {
         return notifications;
     }
 
-    public void setNotifications(List<Notification> filterNotification) {
+    public void setNotifications(List<String> filterNotification) {
         this.notifications = filterNotification;
     }
 
@@ -104,7 +104,7 @@ public class User {
         return invites;
     }
 
-    public Object addNotification(Notification notification) {
+    public boolean addNotification(String notification) {
         return notifications.add(notification);
     }
 

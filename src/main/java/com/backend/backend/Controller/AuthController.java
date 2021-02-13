@@ -89,7 +89,7 @@ public class AuthController {
         Set<String> strRoles = signUpRequest.getRoles();
         ArrayList<Pet> pets = new ArrayList<>();
         Set<Role> roles = new HashSet<>();
-        ArrayList<Notification> notifications = new ArrayList<>();
+        ArrayList<String> notifications = new ArrayList<>();
         ArrayList<Invite> invites = new ArrayList<>();
         ArrayList<ReceivedPet> receivedPets = new ArrayList<>();
         if (strRoles == null) {

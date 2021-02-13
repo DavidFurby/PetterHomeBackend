@@ -176,6 +176,7 @@ public class PetController {
                 pet.setGender(petRequest.getGender());
                 pet.setWeight(petRequest.getWeight());
                 pet.setHeight(petRequest.getHeight());
+                pet.setAnimal(petRequest.getAnimal());
                 updatedPets.add(pet);
                 String msg = "The pets information has been updated successfully!";
                  petMessage = new PetMessageObject(pet, msg); 

@@ -15,12 +15,12 @@ public class JwtResponse {
     private String email;
     private final List<String> roles;
     private final List<Pet> pets;
-    private final List<Notification> notifications;
+    private final List<String> notifications;
     private final List<Invite> invites;
     private final List<ReceivedPet> receivedPets;
 
     public JwtResponse(String accessToken, String id, String username, String email, List<String> roles, List<Pet> pets,
-            List<Notification> notifications, List<Invite> invites, List<ReceivedPet> receivedPets) {
+            List<String> notifications, List<Invite> invites, List<ReceivedPet> receivedPets) {
         this.token = accessToken;
         this.id = id;
         this.username = username;
@@ -80,7 +80,7 @@ public class JwtResponse {
         return pets;
     }
 
-    public List<Notification> getNotifications() {
+    public List<String> getNotifications() {
         return notifications;
     }
 

@@ -29,13 +29,13 @@ public class UserDetailsImpl implements UserDetails {
 
     private final List<Pet> pets;
 
-    private final List<Notification> notifications;
+    private final List<String> notifications;
 
     private final List<Invite> invites;
     private final List<ReceivedPet> receivedPets;
 
     public UserDetailsImpl(String id, String username, String email, String password,
-            Collection<? extends GrantedAuthority> authorities, List<Pet> pets, List<Notification> notifications,
+            Collection<? extends GrantedAuthority> authorities, List<Pet> pets, List<String> notifications,
             List<Invite> invites, List<ReceivedPet> receivedPets) {
         this.id = id;
         this.username = username;
@@ -53,7 +53,7 @@ public class UserDetailsImpl implements UserDetails {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName().name())).collect(Collectors.toList());
         List<Pet> pets = user.getPets();
-        List<Notification> notifications = user.getNotifications();
+        List<String> notifications = user.getNotifications();
         List<Invite> invites = user.getInvites();
         List<ReceivedPet> receivedPets = user.getReceivedPets(); 
         return new UserDetailsImpl(user.getId(), user.getUsername(), user.getEmail(), user.getPassword(), authorities,
@@ -121,7 +121,7 @@ public class UserDetailsImpl implements UserDetails {
         return this.password = password;
     }
 
-    public List<Notification> getNotifications() {
+    public List<String> getNotifications() {
         return notifications;
     }
 

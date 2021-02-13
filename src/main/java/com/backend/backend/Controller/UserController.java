@@ -156,6 +156,9 @@ public class UserController {
         String userId = id.get("userId");
         String petId = id.get("petId");
         Optional<User> receiver = userRepository.findByUsername(inviteRequest.getUsername());
+        if (!receiver.isPresent()) {
+            return ResponseEntity.ok(new MessageResponse("User does not exist"));
+        }
         User realReceiver = receiver.get();
         Invite invite = new Invite(userId, petId);
 
@@ -319,6 +322,7 @@ public class UserController {
         User user = opUser.get();
         List<Invite> invites = user.getInvites();
         List<InviteObject> objectList = new ArrayList<>();
+        List<Invite> filterInvites = new ArrayList<>();
         for (Invite invite : invites) {
             String senderId = invite.getUserId();
             Optional<User> opSender = userRepository.findById(senderId);
@@ -329,14 +333,11 @@ public class UserController {
                 if (pet.getId().equals(invite.getPetId())) {
                     inviteObject = new InviteObject(invite.getId(), realSender, pet);
                     objectList.add(inviteObject);
-
+                    filterInvites.add(invite);
                 }
             }
-            if (inviteObject.equals(null)) {
-                invites.stream().filter(i -> !i.getId().equals(invite.getId())).collect(Collectors.toList());
-            }
         }
-        opUser.ifPresent(u -> u.setInvites(invites));
+        opUser.ifPresent(u -> u.setInvites(filterInvites));
         opUser.ifPresent(u -> userRepository.save(u));
 
         return objectList;
@@ -367,7 +368,6 @@ public class UserController {
         }
         return realUsers;
     }
-
 
     @GetMapping("/getAllAnimals")
     @PreAuthorize("hasRole('USER')")
