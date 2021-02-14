@@ -312,18 +312,28 @@ public class UserController {
         for (String receiver : users) {
             Optional<User> tempUser = userRepository.findById(receiver);
             User realUser = tempUser.get();
-            if(!realUser.getId().equals(receiverId)) {
+            if (!realUser.getId().equals(receiverId)) {
                 filterUsers.add(realUser.getId());
+            } else {
+                List<ReceivedPet> receivedPets = realUser.getReceivedPets();
+                List<ReceivedPet> filterReceivedPets = new ArrayList<>();
+                for (ReceivedPet receivedPet : receivedPets) {
+                    if (!receivedPet.getPetId().equals(petId)) {
+                        filterReceivedPets.add(receivedPet);
+                    }
+                }
+                tempUser.ifPresent(u -> u.setReceivedPets(filterReceivedPets));
+                tempUser.ifPresent(u -> userRepository.save(u)); 
             }
         }
-        realPet.setSharedWith(filterUsers); 
-        for(Pet pet: pets) {
-            if(pet.getId().equals(realPet.getId())) {
-                pet.equals(realPet); 
+        realPet.setSharedWith(filterUsers);
+        for (Pet pet : pets) {
+            if (pet.getId().equals(realPet.getId())) {
+                pet.equals(realPet);
             }
         }
         opUser.ifPresent(u -> u.setPets(pets));
-        opUser.ifPresent(u -> userRepository.save(u)); 
+        opUser.ifPresent(u -> userRepository.save(u));
         String message = "user has been deleted successfully";
 
         MessageObject object = new MessageObject(receiverId, message);
