@@ -7,15 +7,11 @@ import com.backend.backend.Model.Invite;
 import com.backend.backend.Model.InviteObject;
 import com.backend.backend.Model.MessageObject;
 import com.backend.backend.Model.Need;
-import com.backend.backend.Model.Notification;
-import com.backend.backend.Model.NotificationObject;
 import com.backend.backend.Model.Pet;
-import com.backend.backend.Model.PetMessageObject;
 import com.backend.backend.Model.User;
 import com.backend.backend.Payload.request.ChangePasswordRequest;
 import com.backend.backend.Payload.request.InviteRequest;
 import com.backend.backend.Payload.request.NeedRequest;
-import com.backend.backend.Payload.request.PetRequest;
 import com.backend.backend.Payload.request.ScheduleRequest;
 import com.backend.backend.Payload.response.MessageResponse;
 import com.backend.backend.Repository.UserRepository;
@@ -147,81 +143,6 @@ public class UserController {
         user.ifPresent(u -> u.setPassword(encoder.encode(changePasswordRequest.getNewPassword())));
         user.ifPresent(u -> userRepository.save(u));
         return ResponseEntity.ok(new MessageResponse("Password has been changed successfully!"));
-    }
-
-    @PostMapping("/sendInvite")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> sendInvite(@Valid @RequestBody InviteRequest inviteRequest,
-            @RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
-        String petId = id.get("petId");
-        Optional<User> receiver = userRepository.findByUsername(inviteRequest.getUsername());
-        if (!receiver.isPresent()) {
-            return ResponseEntity.ok(new MessageResponse("User does not exist"));
-        }
-        User realReceiver = receiver.get();
-        Invite invite = new Invite(userId, petId);
-
-        List<Invite> receiverInvites = realReceiver.getInvites();
-        List<ReceivedPet> receiverReceivedPets = realReceiver.getReceivedPets();
-        for (Invite tempInvite : receiverInvites) {
-            if (tempInvite.getPetId().equals(invite.getPetId())) {
-                return ResponseEntity
-                        .ok(new MessageResponse("Invite for this pet has already been sent to this user!"));
-            }
-        }
-
-        for (ReceivedPet receivedPet : receiverReceivedPets) {
-            if (receivedPet.getPetId().equals(invite.getPetId())) {
-                return ResponseEntity.ok(new MessageResponse("This pet has already been received by that user!"));
-            }
-        }
-
-        receiver.ifPresent(u -> u.addInvite(invite));
-        receiver.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("Invite has been sent!"));
-    }
-
-    @PostMapping("/acceptInvite")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<MessageResponse> acceptInvite(@Valid @RequestParam Map<String, String> id) {
-        String userId = id.get("userId");
-        String inviteId = id.get("inviteId");
-
-        Optional<User> receiver = userRepository.findById(userId);
-        List<Invite> invites = receiver.get().invites;
-        List<Invite> filterInvites = invites.stream().filter(i -> i.getId().equals(inviteId))
-                .collect(Collectors.toList());
-        Optional<Invite> setInvite = filterInvites.stream().findFirst();
-
-        String receivedPetId = setInvite.get().getPetId();
-
-        String senderId = setInvite.get().getUserId();
-        Optional<User> opSender = userRepository.findById(senderId);
-        ReceivedPet acceptedPet = new ReceivedPet(receivedPetId, senderId);
-        User sender = opSender.get();
-        List<Pet> senderPets = sender.getPets();
-
-        List<Pet> updatePets = new ArrayList<>();
-        for (Pet pet : senderPets) {
-            if (pet.getId().equals(receivedPetId)) {
-                pet.addSharedWith(userId);
-                updatePets.add(pet);
-            } else {
-                updatePets.add(pet);
-
-            }
-        }
-
-        opSender.ifPresent(u -> u.setPets(updatePets));
-        opSender.ifPresent(u -> userRepository.save(u));
-
-        receiver.ifPresent(u -> u.receivePet(acceptedPet));
-        List<Invite> removeInvite = invites.stream().filter(i -> !i.getId().equals(inviteId))
-                .collect(Collectors.toList());
-        receiver.ifPresent(u -> u.setInvites(removeInvite));
-        receiver.ifPresent(u -> userRepository.save(u));
-        return ResponseEntity.ok(new MessageResponse("Invite has been accepted!"));
     }
 
     @GetMapping("/getReceivedPetById")
@@ -367,6 +288,46 @@ public class UserController {
             realUsers.add(realUser);
         }
         return realUsers;
+    }
+
+    @DeleteMapping("/removeReceivedUser")
+    @PreAuthorize("hasRole('USER')")
+    public MessageObject removeReceivedUser(@RequestParam Map<String, String> id) {
+        String userId = id.get("userId");
+        String petId = id.get("petId");
+        String receiverId = id.get("receiverId");
+        Optional<User> opUser = userRepository.findById(userId);
+        User user = opUser.get();
+        List<Pet> pets = user.getPets();
+        List<Pet> filterPets = new ArrayList<>();
+        for (Pet pet : pets) {
+            if (pet.getId().equals(petId)) {
+                filterPets.add(pet);
+            }
+        }
+        Optional<Pet> opPet = filterPets.stream().findFirst();
+        Pet realPet = opPet.get();
+        List<String> users = realPet.getSharedWith();
+        List<String> filterUsers = new ArrayList<>();
+        for (String receiver : users) {
+            Optional<User> tempUser = userRepository.findById(receiver);
+            User realUser = tempUser.get();
+            if(!realUser.getId().equals(receiverId)) {
+                filterUsers.add(realUser.getId());
+            }
+        }
+        realPet.setSharedWith(filterUsers); 
+        for(Pet pet: pets) {
+            if(pet.getId().equals(realPet.getId())) {
+                pet.equals(realPet); 
+            }
+        }
+        opUser.ifPresent(u -> u.setPets(pets));
+        opUser.ifPresent(u -> userRepository.save(u)); 
+        String message = "user has been deleted successfully";
+
+        MessageObject object = new MessageObject(receiverId, message);
+        return object;
     }
 
     @GetMapping("/getAllAnimals")

@@ -7,7 +7,6 @@ import javax.validation.Valid;
 import com.backend.backend.Model.ReceivedPet;
 import com.backend.backend.Model.ERole;
 import com.backend.backend.Model.Invite;
-import com.backend.backend.Model.Notification;
 import com.backend.backend.Model.Role;
 import com.backend.backend.Payload.request.LoginRequest;
 import com.backend.backend.Payload.request.SignupRequest;

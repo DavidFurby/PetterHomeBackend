@@ -1,6 +1,7 @@
 package com.backend.backend.Controller;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,17 +62,18 @@ public class NotificationController {
                                     Optional<User> opAssignedUser = userRepository.findByUsername(assignedUsername);
                                     User assignedUser = opAssignedUser.get();
                                     String assignedUserId = assignedUser.getId();
-                                    String time = schedule.getTime(); 
+                                    String time = schedule.getTime();
                                     Optional<User> opUser = userRepository.findById(userId);
                                     if (time.equals(dateFormat.format(new Date()))) {
+                                        LocalDate date = LocalDate.now(); // Create a date object
                                         Notification notification = new Notification(petId, needId, scheduleId, userId,
-                                                assignedUserId, false);
+                                                assignedUserId, false, date);
                                         String notificationId = notification.getId();
                                         notificationRepository.save(notification);
                                         opUser.ifPresent(u -> u.addNotification(notificationId));
                                         opUser.ifPresent(u -> userRepository.save(u));
                                         List<String> sharedWithUsers = pet.getSharedWith();
-                                        for(String sharedWithUser: sharedWithUsers) {
+                                        for (String sharedWithUser : sharedWithUsers) {
                                             Optional<User> opSharedWithUser = userRepository.findById(sharedWithUser);
                                             opSharedWithUser.ifPresent(u -> u.addNotification(notificationId));
                                         }
@@ -98,6 +100,7 @@ public class NotificationController {
         Optional<User> opUser = userRepository.findById(userId);
         User user = opUser.get();
         List<String> notifications = user.getNotifications();
+        List<String> filterNotifications = new ArrayList<>();
         for (String notification : notifications) {
             Optional<Notification> opNotification = notificationRepository.findById(notification);
             Notification realNotification = opNotification.get();
@@ -105,6 +108,7 @@ public class NotificationController {
             String petId = realNotification.getPetId();
             String needId = realNotification.getNeedId();
             String scheduleId = realNotification.getScheduleId();
+            LocalDate date = realNotification.getDate();
             List<User> users = userRepository.findAll();
             for (User listUser : users) {
                 List<Pet> pets = listUser.getPets();
@@ -117,8 +121,9 @@ public class NotificationController {
                                 for (Schedule schedule : schedules) {
                                     if (schedule.getId().equals(scheduleId)) {
                                         NotificationObject notificationObject = new NotificationObject(notification,
-                                                pet, need, schedule, checked);
+                                                pet, need, schedule, checked, date);
                                         notificationObjects.add(notificationObject);
+                                        filterNotifications.add(notification);
                                     }
                                 }
                             }
@@ -127,6 +132,9 @@ public class NotificationController {
                 }
             }
         }
+
+        opUser.ifPresent(u -> u.setNotifications(filterNotifications));
+        opUser.ifPresent(u -> userRepository.save(u));
         return notificationObjects;
     }
 

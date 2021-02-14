@@ -168,7 +168,7 @@ public class PetController {
         Optional<User> user = userRepository.findById(userId);
         List<Pet> pets = user.get().pets;
         List<Pet> updatedPets = new ArrayList<>();
-        PetMessageObject petMessage = null; 
+        PetMessageObject petMessage = null;
         for (Pet pet : pets) {
             if (pet.getId().equals(petId)) {
                 pet.setPetName(petRequest.getPetName());
@@ -179,7 +179,7 @@ public class PetController {
                 pet.setAnimal(petRequest.getAnimal());
                 updatedPets.add(pet);
                 String msg = "The pets information has been updated successfully!";
-                 petMessage = new PetMessageObject(pet, msg); 
+                petMessage = new PetMessageObject(pet, msg);
             } else {
                 updatedPets.add(pet);
             }

@@ -1,6 +1,8 @@
 package com.backend.backend.Model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
@@ -31,15 +33,18 @@ public class Notification {
     public String assignedUserId;
     @NotBlank
     Boolean checked;
+    @NotBlank
+    LocalDate date; 
 
-    public Notification(@NotBlank String petId, String needId, String scheduleId, String userId, String assignedUserId, Boolean checked) {
+    public Notification(@NotBlank String petId, String needId, String scheduleId, String userId, String assignedUserId, Boolean checked, LocalDate date) {
         ObjectId id;
         this.petId = petId;
         this.needId = needId;
         this.scheduleId = scheduleId;
         this.userId = userId;
         this.assignedUserId = assignedUserId;
-        this.checked = checked;
+        this.checked = checked; 
+        this.date = date; 
     }
 
     public String getId() {
@@ -70,5 +75,8 @@ public class Notification {
 
     public void setChecked(Boolean checked) {
         this.checked = checked;
+    }
+    public LocalDate getDate() {
+        return date; 
     }
 }

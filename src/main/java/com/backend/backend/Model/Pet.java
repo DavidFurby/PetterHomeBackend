@@ -85,8 +85,6 @@ public class Pet {
         return gender;
     }
 
-    public void setPetName() {
-    }
 
     public List<Need> getNeeds() {
         return needs;
@@ -120,9 +118,12 @@ public class Pet {
 		return sharedWithList.add(sharedWith);
 	}
 
-	public void setWeight(Integer weight2) {
+	public void setWeight(Integer weight) {
+        this.weight = weight;
 	}
 
-	public void setHeight(Integer height2) {
+	public void setHeight(Integer height) {
+        this.height = height;
 	}
+
 }

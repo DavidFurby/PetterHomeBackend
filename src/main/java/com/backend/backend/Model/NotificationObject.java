@@ -1,5 +1,7 @@
 package com.backend.backend.Model;
 
+import java.time.LocalDate;
+
 import javax.validation.constraints.NotBlank;
 
 public class NotificationObject {
@@ -14,13 +16,16 @@ public class NotificationObject {
     public Schedule schedule;
     @NotBlank
     public Boolean check;
+    @NotBlank
+    public LocalDate date; 
 
-    public NotificationObject(@NotBlank String notificationId, Pet pet, Need need, Schedule schedule, Boolean check) {
+    public NotificationObject(@NotBlank String notificationId, Pet pet, Need need, Schedule schedule, Boolean check, LocalDate date) {
         this.notificationId = notificationId;
         this.pet = pet;
         this.need = need;
         this.schedule = schedule;
         this.check = check;
+        this.date = date; 
     }
 
     public String getNotificationId() {
@@ -40,5 +45,8 @@ public class NotificationObject {
     }
     public Boolean getCheck() {
         return check; 
+    }
+    public LocalDate getDate() {
+        return date; 
     }
 }
